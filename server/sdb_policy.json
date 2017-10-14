@@ -1,0 +1,9 @@
+{
+   "Version": "2012-10-17",
+   "Statement":[{
+      "Effect":"Allow",
+      "Action":"sdb:*",
+      "Resource":"arn:aws:sdb:*:886388930953:domain/*"
+      }
+   ]
+}

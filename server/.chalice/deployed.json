@@ -1,0 +1,12 @@
+{
+  "dev": {
+    "api_handler_name": "grot2-server-dev",
+    "api_handler_arn": "arn:aws:lambda:eu-west-1:886388930953:function:grot2-server-dev",
+    "lambda_functions": {},
+    "backend": "api",
+    "chalice_version": "1.0.3",
+    "rest_api_id": "bufp75v5x9",
+    "api_gateway_stage": "api",
+    "region": "eu-west-1"
+  }
+}

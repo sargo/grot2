@@ -12,7 +12,7 @@ from urllib.request import urlopen, Request
 import game
 
 
-SERVER = '127.0.0.1:8080' #'grot-server.games.stxnext.pl'
+SERVER = 'api.game.pythonfasterway.org'
 TOKEN_FILE = os.path.expanduser('~/.grot_token')
 
 _HELP = {
@@ -50,11 +50,6 @@ parser_play.add_argument('--match_id', required=False, help='Match ID')
 parser_results = add_parser('results')
 parser_results.add_argument('--match_id', required=True, help='Match ID')
 
-argparser.add_argument(
-    '--debug', default=False, required=False,
-    action='store_true', dest='debug', help='debug flag'
-)
-
 args = argparser.parse_args()
 subcmd = args.subcmd
 
@@ -77,14 +72,14 @@ else:
         token = ''
     if len(token) != 36:
         print("""No token registered.
-Sign in to http://{} to get your token.
+Sign in to https://{} to get your token.
 Use 'python3 client.py register token' before using other commands.
 """.format(SERVER))
 
     if token:
         def new_match():
             req = Request(
-                url='http://{}/match?token={}'.format(SERVER, token),
+                url='https://{}/match?token={}'.format(SERVER, token),
                 method='PUT',
             )
 
@@ -99,7 +94,7 @@ Use 'python3 client.py register token' before using other commands.
 
         def show_results(match_id):
             req = Request(
-                url='http://{}/match/{}/results?token={}'.format(
+                url='https://{}/match/{}/results?token={}'.format(
                     SERVER, match_id, token
                 ),
                 headers={'Accept': 'application/json'},
@@ -117,7 +112,7 @@ Use 'python3 client.py register token' before using other commands.
             match_id = args.match_id
             if not match_id:
                 match_id = new_match()
-            game.play(match_id, token, SERVER, args.debug)
+            game.play(match_id, token, SERVER)
             show_results(match_id)
 
         elif subcmd == 'results':

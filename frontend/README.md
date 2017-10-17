@@ -1,8 +1,6 @@
-# grot2 frontend
+# GROT² frontend
 
-> GROT 2 game
-
-## Build site
+## Build
 
 ``` bash
 cd src
@@ -11,7 +9,7 @@ coffee --join ../static/js/grot2.js --compile -- config.coffee \
        menu.coffee game.coffee
 ```
 
-## Update site
+## Update
 
 ``` bash
 aws s3 cp index.html s3://game.pythonfasterway.org \

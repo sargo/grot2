@@ -70,7 +70,7 @@ else:
             token = f.read().strip()
     except IOError:
         token = ''
-    if len(token) != 36:
+    if len(token) != 40:
         print("""No token registered.
 Sign in to https://{} to get your token.
 Use 'python3 client.py register token' before using other commands.
@@ -79,10 +79,10 @@ Use 'python3 client.py register token' before using other commands.
     if token:
         def new_match():
             req = Request(
-                url='https://{}/match?token={}'.format(SERVER, token),
+                url='https://{}/match'.format(SERVER),
                 method='PUT',
+                headers={'x-api-key': token},
             )
-
             try:
                 resp = urlopen(req)
             except HTTPError as e:
@@ -94,8 +94,8 @@ Use 'python3 client.py register token' before using other commands.
 
         def show_results(match_id):
             req = Request(
-                url='https://{}/match/{}/results?token={}'.format(
-                    SERVER, match_id, token
+                url='https://{}/match/{}/results'.format(
+                    SERVER, match_id
                 ),
                 headers={'Accept': 'application/json'},
             )

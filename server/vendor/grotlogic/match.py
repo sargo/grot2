@@ -1,3 +1,5 @@
+import math
+
 
 class Match:
 
@@ -39,16 +41,15 @@ class Match:
         else:
             self.move_next_field(next_field)
 
+    def get_bonus_multiplier(self):
+        return 100 / (self.score + 200)
+
     def update_score(self):
         """
         Update game score.
         """
+        self.moves += math.floor(self.move_length * self.get_bonus_multiplier())
         self.score += self.move_score
-        threshold = (self.score // (5 * self.board.size ** 2))
-        threshold += self.board.size - 1
-
-        if self.move_length > threshold:
-            self.moves += self.move_length - threshold
 
     def finish_move(self):
         """
@@ -69,6 +70,7 @@ class Match:
             'score': self.score,
             'moves': self.moves,
             'board': self.board.get_state() if board else None,
+            'bonus-multiplier': self.get_bonus_multiplier(),
         }
 
     def is_active(self):

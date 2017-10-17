@@ -14,6 +14,11 @@
       "Effect": "Allow",
       "Action": "sdb:*",
       "Resource": "arn:aws:sdb:*:*:*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "apigateway:*",
+      "Resource": "arn:aws:apigateway:*:*:*"
     }
   ]
 }

@@ -21,9 +21,12 @@ def play(match_id, token, server):
     """
     Connect to game server and play rounds in the loop until end of game.
     """
-    match_url = 'https://{}/match/{}?token={}'.format(server, match_id, token)
+    match_url = 'https://{}/match/{}'.format(server, match_id)
     # get initial state of a match
-    response = urlopen(match_url)
+    response = urlopen(Request(
+        match_url,
+        headers={'x-api-key': token},
+    ))
 
     while response.status == 200:
         data = json.loads(response.read().decode())
@@ -33,7 +36,10 @@ def play(match_id, token, server):
         # make your move and get data for the next round
         response = urlopen(Request(
             url=match_url,
-            headers={'Content-type': 'application/json'},
+            headers={
+                'Content-type': 'application/json',
+                'x-api-key': token,
+            },
             data=json.dumps(get_move(data)).encode(),
             method='POST',
         ))

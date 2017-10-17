@@ -3,10 +3,6 @@ import random
 from chalice import Chalice
 from chalice import NotFoundError, BadRequestError
 
-from grotlogic.board import Board
-from grotlogic.match import Match
-from grotlogic.player import Player
-
 import apigateway
 import gh_oauth
 import sdb

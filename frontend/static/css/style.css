@@ -69,35 +69,36 @@ a {
     padding-bottom: 20px;
 }
 
-.levels #header {
-    padding-top: 20px;
-    padding-bottom: 20px;
-}
-
 #header_box {
-    width: 350px;
+    width: 300px;
     text-align: right;
     margin: auto;
-}
-
-#header img {
-    width: 200px;
-    height: auto;
 }
 
 #content {
     width: 610px;
     margin-left: auto;
     margin-right: auto;
-    padding-top: 200px;
+    padding-top: 130px;
+    padding-bottom: 20px;
 }
 
-#credits, #source {
-    text-align: center;
+#hof table {
+    width: 100%;
 }
-
-#credits ul, #source ul, #levels ul {
-    list-style-type: none;
-    padding: 0px;
-    margin: 0px;
+#hof td {
+    padding: 5px;
+    width: 50%;
+}
+#hof td:first-child {
+    text-align: right
+}
+#hof tr:nth-child(1) td {
+    font-size: 200%;
+}
+#hof tr:nth-child(2) td {
+    font-size: 166%;
+}
+#hof tr:nth-child(3) td {
+    font-size: 133%;
 }

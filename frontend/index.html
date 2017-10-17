@@ -5,16 +5,14 @@
     <title>GROT&sup2;</title>
     <meta name="theme-color" content="#00968f">
 
-    <meta name="author" content="STX Next" />
-    <meta name="keywords" content="stxnext,grot,games,python,pycon,europython,kineticjs,javascript,coffeescript,ios,android,html5">
+    <meta name="author" content="Wojciech Lichota" />
+    <meta name="keywords" content="grot2,grot,arrowhead,games,python,kineticjs,javascript,coffeescript,algorithm,bot">
     <meta name="robots" content="follow, all">
     <meta name="language" content="en-GB">
-    <meta name="description" content="STX Next is the largest Python software house in Europe. Python and JavaScript is also our hobby so we create games in our favorite languages. Check our hackathons and GROT game!">
+    <meta name="description" content="GROT2 is a logic game which you can play online and by writting a bot using API.">
 
-    <!-- build:css css/main.css -->
     <link rel="stylesheet" href="/static/css/normalize.css">
     <link rel="stylesheet" href="/static/css/style.css">
-    <!-- endbuild -->
 </head>
 <body>
     <div id="main">
@@ -29,17 +27,17 @@
             <div class="text">
                 <h2>About</h2>
                 <p>
-                    <b>GROT&sup2;</b> (ang. arrowhead) is a logic game about making
-                    the most valuable chains possible!
+                    <b>GROT&sup2;</b> (ang. arrowhead) is a logic game about
+                    making the most valuable chains possible!
                 </p>
                 <p>
                     Tap or click any field to start a chain reaction - fields
-                    will move one by one in the direction shown by the arrowheads.
+                    will move one by one in the direction shown by arrowheads.
                 </p>
                 <p>
-                    Longer chains grant move bonuses.
-                    Clear all fields in a row or in a column to get extra points.
-                    Collect as many points as possible!
+                    Longer chains grant move bonuses (check <i>multiplier</i>
+                    parameter). Clear all fields in a row or in a column to get
+                    extra points. Collect as many points as possible!
                 </p>
             </div>
 
@@ -53,13 +51,21 @@
                 </p>
                 <p>
                     For more details, see
-                    <a href="https://github.com/sargo/grot2/client">grot2 client readme</a>.
+                    <a href="https://github.com/sargo/grot2/client">grot2 client</a> readme.
                 </p>
             </div>
             <div class="text">
                 <h2>Hall of Fame</h2>
                 <p>
-
+                    To make the results independent of randomness, all players
+                    play in the same conditions, that is, in consecutive matches
+                    players get the same sequence of arrows. Hall of Fame is
+                    ordered by the average points per match. The rating is
+                    updated when you start a new metch or when you have zero moves
+                    available so play all matches to the end to keep high average!
+                </p>
+                <p>
+                    <h3><a href="hall-of-fame.html">Hall of Fame</a></h3>
                 </p>
             </div>
             <div id="source">
@@ -68,6 +74,22 @@
                     The <a href="https://github.com/sargo/grot2">source code</a>
                     is available on GitHub under a MIT license.
                 </p>
+            </div>
+            <div id="credits">
+                <h2>Credits</h2>
+                <p>
+                    GROT&sup2; is based on
+                    <a href="http://grot.hackathons.stxnext.pl/">GROT game</a>
+                    by <a href="https://stxnext.com/">STX Next</a> on MIT license.
+                </p>
+                <p>
+                    GROT&sup2; server use
+                    <a href="https://chalice.readthedocs.io">Chalice</a>
+                    framework and run on AWS Lambda.<br />
+                    GROT&sup2; online game use
+                    <a href="http://kineticjs.com/">KineticJS</a>.
+                </p>
+            </div>
         </div>
     </div>
 

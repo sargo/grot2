@@ -3,10 +3,11 @@ import random
 from chalice import Chalice
 from chalice import NotFoundError, BadRequestError
 
-import apigateway
-import gh_oauth
-import sdb
-import settings
+from chalicelib import apigateway
+from chalicelib import gh_oauth
+from chalicelib import s3
+from chalicelib import sdb
+from chalicelib import settings
 
 
 app = Chalice(app_name='grot2-server')
@@ -79,9 +80,9 @@ def match_post(match_id):
     match.start_move(x, y)
     sdb.update_match(user_id, match_id, match)
     if not match.is_active():
-        # TODO - clear random_state
-        # TODO - update hall of fame
-        pass
+        s3.update_hof(sdb.increment_total_score(user_id, match.score))
+        raise BadRequestError('game over')
+
     return match.get_state()
 
 

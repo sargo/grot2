@@ -27,15 +27,14 @@ client = boto3.client(
 
 def init_db():
     domains = client.list_domains().get('DomainNames', [])
-    if 'matches' not in domains:
-        client.create_domain(DomainName='matches')
-    if 'users' not in domains:
-        client.create_domain(DomainName='users')
+    for domain in ['hof', 'matches', 'users']:
+        if domain not in domains:
+            client.create_domain(DomainName=domain)
 
 
 def clear_db():
-    client.delete_domain(DomainName='matches')
-    client.delete_domain(DomainName='users')
+    for domain in ['hof', 'matches', 'users']:
+        client.delete_domain(DomainName=domain)
 
 
 def _parse_attrs(data):
@@ -110,6 +109,7 @@ def new_match(user_id):
 
     random_state = DenseStateRandom(seed).getstate()
     _insert_match(new_match_id, user_id, str(seed), random_state)
+    increment_total_matches(user_id)
 
     return new_match_id
 
@@ -180,6 +180,52 @@ def get_user_id(api_key):
     users = response.get('Items', [])
     if users:
         return users[0]['Name']
+
+
+def _increment_total(user_id, attr_name, value):
+    response = client.select(
+        SelectExpression="select {} from hof where user_id='{}' limit 1".format(attr_name, user_id),
+    )
+    try:
+        old_total = int(response['Items'][0]['Attributes'][0]['Value'])
+        expected = {'Name': attr_name, 'Value': str(old_total)}
+    except (KeyError, IndexError):
+        old_total = 0
+        expected = None
+
+    new_total = str(old_total + value)
+
+    client.put_attributes(
+        DomainName='hof',
+        ItemName=user_id,
+        Attributes=[
+            {'Name': attr_name, 'Value': new_total, 'Replace': True},
+        ],
+        Expected=expected,
+    )
+
+
+def increment_total_matches(user_id):
+    _increment_total(user_id, 'total_matches', 1)
+
+
+def increment_total_score(user_id, score):
+    _increment_total(user_id, 'total_score', score)
+
+
+def get_hof_data():
+    results = []
+    response = client.select(
+        SelectExpression="select total_score, total_matches from hof"
+    )
+    for item in response.get('Items'):
+        attrs = _parse_attrs(item['Attributes'])
+        results.append({
+            'user_id': item['Name'],
+            'total_matches': int(attrs.get('total_matches', '1')),
+            'total_score': int(attrs.get('total_score', '0')),
+        })
+    return results
 
 
 if __name__ == '__main__':

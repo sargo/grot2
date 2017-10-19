@@ -7,11 +7,11 @@ import multidict
 from botocore.config import Config
 from botocore.vendored.requests.exceptions import ReadTimeout
 
-from grotlogic.board import Board
-from grotlogic.match import Match
-from grotlogic.player import Player
-from grotlogic.random import DenseStateRandom
-import settings
+from .grotlogic.board import Board
+from .grotlogic.match import Match
+from .grotlogic.player import Player
+from .grotlogic.random import DenseStateRandom
+from . import settings
 
 
 client = boto3.client(
@@ -57,14 +57,15 @@ def _join_long(attrs, attr):
     return ''.join(lines)
 
 
-def _insert_match(match_id, user_id, seed, random_state):
-    match_key = user_id + '_' + match_id
+def _insert_match(match_id, api_key, user_id, seed, random_state):
+    match_key = api_key + '_' + match_id
     client.put_attributes(
         DomainName='matches',
         ItemName=match_key,
         Attributes=[
             {'Name': 'match_key', 'Value': match_key, 'Replace': True},
-            {'Name': 'match_id', 'Value': match_id, 'Replace': True},
+            {'Name': 'match_id', 'Value': match_id.zfill(6), 'Replace': True},
+            {'Name': 'api_key', 'Value': api_key, 'Replace': True},
             {'Name': 'user_id', 'Value': user_id, 'Replace': True},
             {'Name': 'seed', 'Value': seed, 'Replace': True},
             {'Name': 'score', 'Value': '0', 'Replace': True},
@@ -75,7 +76,7 @@ def _insert_match(match_id, user_id, seed, random_state):
 
 
 def _get_match_obj(match_state):
-    attrs = _parse_attrs(match_state['Attributes'])
+    attrs = _parse_attrs(match_state)
     random_state = _join_long(attrs, 'random_state')
     return Match(
         Player(attrs['user_id']),
@@ -85,7 +86,7 @@ def _get_match_obj(match_state):
     )
 
 
-def new_match(user_id):
+def new_match(api_key, user_id):
     # get last match is exist
     response = client.select(
         SelectExpression="select match_id from matches where user_id='{}' and match_id is not null order by match_id desc limit 1".format(user_id),
@@ -99,7 +100,7 @@ def new_match(user_id):
 
     # search for other users' matches
     response = client.select(
-        SelectExpression="select seed from matches where match_id='{}' limit 1".format(new_match_id),
+        SelectExpression="select seed from matches where match_id='{}' limit 1".format(new_match_id.zfill(6)),
         ConsistentRead=True,
     )
     try:
@@ -108,24 +109,22 @@ def new_match(user_id):
         seed = random.getrandbits(128)
 
     random_state = DenseStateRandom(seed).getstate()
-    _insert_match(new_match_id, user_id, str(seed), random_state)
-    increment_total_matches(user_id)
+    _insert_match(new_match_id, api_key, user_id, str(seed), random_state)
 
     return new_match_id
 
 
-def get_match(user_id, match_id):
-    response = client.select(
-        SelectExpression="select * from matches where match_key='{}_{}' limit 1".format(user_id, match_id),
-        ConsistentRead=True,
+def get_match(api_key, match_id):
+    response = client.get_attributes(
+        DomainName='matches',
+        ItemName='{}_{}'.format(api_key, match_id),
     )
-    matches = response.get('Items')
-    if matches:
-        return _get_match_obj(matches[0])
+    if 'Attributes' in response:
+        return _get_match_obj(response['Attributes'])
 
 
-def update_match(user_id, match_id, match):
-    match_key = user_id + '_' + match_id
+def update_match(api_key, match_id, match):
+    match_key = api_key + '_' + match_id
     client_nowait = boto3.client(
         'sdb',
         use_ssl=False,
@@ -152,14 +151,6 @@ def update_match(user_id, match_id, match):
         pass
 
 
-def get_match_results(match_id):
-    response = client.select(
-        SelectExpression="select user_id, score from matches where match_id='{}'".format(match_id),
-    )
-    matches = response.get('Items', [])
-    return [_parse_attrs(match['Attributes']) for match in matches]
-
-
 def new_user(user_id, email, api_key):
     client.put_attributes(
         DomainName='users',
@@ -183,15 +174,15 @@ def get_user_id(api_key):
 
 
 def _increment_total(user_id, attr_name, value):
-    response = client.select(
-        SelectExpression="select {} from hof where user_id='{}' limit 1".format(attr_name, user_id),
+    response = client.get_attributes(
+        DomainName='hof', ItemName=user_id, AttributeNames=[attr_name]
     )
     try:
-        old_total = int(response['Items'][0]['Attributes'][0]['Value'])
+        old_total = int(response['Attributes'][0]['Value'])
         expected = {'Name': attr_name, 'Value': str(old_total)}
     except (KeyError, IndexError):
         old_total = 0
-        expected = None
+        expected = {}
 
     new_total = str(old_total + value)
 
@@ -216,7 +207,8 @@ def increment_total_score(user_id, score):
 def get_hof_data():
     results = []
     response = client.select(
-        SelectExpression="select total_score, total_matches from hof"
+        SelectExpression="select total_score, total_matches from hof",
+        ConsistentRead=True,
     )
     for item in response.get('Items'):
         attrs = _parse_attrs(item['Attributes'])
@@ -225,7 +217,20 @@ def get_hof_data():
             'total_matches': int(attrs.get('total_matches', '1')),
             'total_score': int(attrs.get('total_score', '0')),
         })
+    results.sort(
+        key=lambda item: item['total_score']/item['total_matches'],
+        reverse=True
+    )
     return results
+
+
+def get_match_results(match_id):
+    response = client.select(
+        SelectExpression="select user_id, score from matches where match_id='{}'".format(match_id.zfill(6)),
+        ConsistentRead=True,
+    )
+    matches = response.get('Items', [])
+    return [_parse_attrs(match['Attributes']) for match in matches]
 
 
 if __name__ == '__main__':

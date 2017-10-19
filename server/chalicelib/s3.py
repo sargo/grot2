@@ -5,7 +5,7 @@ import boto3
 from botocore.config import Config
 from botocore.vendored.requests.exceptions import ReadTimeout
 
-import settings
+from . import settings
 
 
 client_nowait = boto3.client(
@@ -25,7 +25,7 @@ HOF_TEMPLATE = os.path.join(
 
 def update_hof(hof_data):
     hof_table = '\n'.join([
-        '<tr><td>{}</td><td>{:.2%}</td></tr>'.format(
+        '<tr><td>{}</td><td>{:.2f}</td></tr>'.format(
             item['user_id'],
             item['total_score']/item['total_matches'],
         )
@@ -36,9 +36,10 @@ def update_hof(hof_data):
     html_page = html_page.replace('{{ hof-table }}', hof_table)
     try:
         client_nowait.upload_fileobj(
-            io.BytesIO(html_page),
+            io.BytesIO(html_page.encode()),
             'game.pythonfasterway.org',
-            'hall-of-fame.html'
+            'hall-of-fame.html',
+            ExtraArgs={'ACL': 'public-read', 'ContentType': 'text/html'}
         )
     except ReadTimeout:
         # for a matter of costs we just upload file into s3 without waiting for a

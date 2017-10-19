@@ -2,9 +2,9 @@
 Play GROT2 game.
 """
 
-from urllib.request import urlopen, Request
-import json
 import random
+
+import utils
 
 
 def get_move(data):
@@ -21,25 +21,20 @@ def play(match_id, token, server):
     """
     Connect to game server and play rounds in the loop until end of game.
     """
-    match_url = 'https://{}/match/{}'.format(server, match_id)
+    match_url = '{}/match/{}'.format(server, match_id)
     # get initial state of a match
-    response = urlopen(Request(
-        match_url,
-        headers={'x-api-key': token},
-    ))
+    response = utils.json_urlopen(match_url, headers={'x-api-key': token})
 
-    while response.status == 200:
-        data = json.loads(response.read().decode())
+    while response['code'] == 200:
+        data = response['json']
         if data['moves'] == 0:
+            print('Game Over!')
             break
 
         # make your move and get data for the next round
-        response = urlopen(Request(
-            url=match_url,
-            headers={
-                'Content-type': 'application/json',
-                'x-api-key': token,
-            },
-            data=json.dumps(get_move(data)).encode(),
+        response = utils.json_urlopen(
+            match_url,
+            headers={'x-api-key': token},
+            data=get_move(data),
             method='POST',
-        ))
+        )

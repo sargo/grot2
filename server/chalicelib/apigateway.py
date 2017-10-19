@@ -1,6 +1,9 @@
 import boto3
 from botocore.config import Config
 
+from . import settings
+
+
 client = boto3.client(
     'apigateway',
     use_ssl=False,

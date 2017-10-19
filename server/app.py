@@ -44,23 +44,29 @@ def gh_oauth_endpoint():
 
 @app.route('/match', methods=['PUT'], api_key_required=True)
 def match_put():
-    user_id = sdb.get_user_id(app.current_request.context['identity']['apiKey'])
-    match_id = sdb.new_match(user_id)
+    api_key = app.current_request.context['identity']['apiKey']
+    user_id = sdb.get_user_id(api_key)
+    match_id = sdb.new_match(api_key, user_id)
+    sdb.increment_total_matches(user_id)
+    s3.update_hof(sdb.get_hof_data())
     return {'match_id': match_id}
 
 
 @app.route('/match/{match_id}', methods=['GET'], api_key_required=True)
 def match_get(match_id):
-    user_id = sdb.get_user_id(app.current_request.context['identity']['apiKey'])
-    return sdb.get_match(user_id, match_id).get_state()
+    api_key = app.current_request.context['identity']['apiKey']
+    match = sdb.get_match(api_key, match_id)
+    if not match:
+        raise BadRequestError('invalid match_id')
+    return match.get_state()
 
 
 @app.route('/match/{match_id}', methods=['POST'], api_key_required=True)
 def match_post(match_id):
-    user_id = sdb.get_user_id(app.current_request.context['identity']['apiKey'])
-    match = sdb.get_match(user_id, match_id)
+    api_key = app.current_request.context['identity']['apiKey']
+    match = sdb.get_match(api_key, match_id)
     if not match.is_active():
-        raise BadRequestError('Game Over!')
+        return match.get_state()
 
     request = app.current_request
     data = request.json_body
@@ -78,10 +84,10 @@ def match_post(match_id):
         raise BadRequestError('x or y is out of range')
 
     match.start_move(x, y)
-    sdb.update_match(user_id, match_id, match)
+    sdb.update_match(api_key, match_id, match)
     if not match.is_active():
-        s3.update_hof(sdb.increment_total_score(user_id, match.score))
-        raise BadRequestError('game over')
+        sdb.increment_total_score(match.player.user_id, match.score)
+        s3.update_hof(sdb.get_hof_data())
 
     return match.get_state()
 

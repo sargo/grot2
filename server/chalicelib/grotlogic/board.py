@@ -2,7 +2,7 @@ import random
 
 from .field import Field
 from .random import DenseStateRandom
-import settings
+from .. import settings
 
 
 class Board:

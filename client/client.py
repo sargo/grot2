@@ -10,9 +10,10 @@ from urllib.error import HTTPError
 from urllib.request import urlopen, Request
 
 import game
+import utils
 
 
-SERVER = 'api.game.pythonfasterway.org'
+SERVER = 'https://api.game.pythonfasterway.org'
 TOKEN_FILE = os.path.expanduser('~/.grot_token')
 
 _HELP = {
@@ -72,37 +73,26 @@ else:
         token = ''
     if len(token) != 40:
         print("""No token registered.
-Sign in to https://{} to get your token.
+Sign in to {} to get your token.
 Use 'python3 client.py register token' before using other commands.
 """.format(SERVER))
 
     if token:
         def new_match():
-            req = Request(
-                url='https://{}/match'.format(SERVER),
+            response = utils.json_urlopen(
+                '{}/match'.format(SERVER),
                 method='PUT',
                 headers={'x-api-key': token},
             )
-            try:
-                resp = urlopen(req)
-            except HTTPError as e:
-                print(e.read().decode('utf8'))
-                raise
-
-            data = json.loads(resp.read().decode('utf8', 'ignore'))
-            return data['match_id']
+            if response['code'] == 200:
+                return response['json']['match_id']
 
         def show_results(match_id):
-            req = Request(
-                url='https://{}/match/{}/results'.format(
-                    SERVER, match_id
-                ),
-                headers={'Accept': 'application/json'},
-            )
-            data = json.loads(urlopen(req).read().decode('utf8'))
-            for i, player in enumerate(data['players']):
+            response = utils.json_urlopen(
+                '{}/match/{}/results'.format(SERVER, match_id))
+            for i, player in enumerate(response['json']['players']):
                 print('{}. {} - {}'.format(
-                    i + 1, player['login'], player['score']))
+                    i + 1, player['user'], player['score']))
 
         if subcmd == 'new':
             match_id = new_match()

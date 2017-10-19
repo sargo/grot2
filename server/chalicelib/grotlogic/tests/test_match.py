@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from ..game import Game
+from ..match import Match
 from ..board import Board
 from .utils import assert_fields_directions, set_fields_directions
 
@@ -8,22 +8,22 @@ from .utils import assert_fields_directions, set_fields_directions
 class GameTestCase(TestCase):
 
     def setUp(self):
-        self.game = Game(Board(5, 0))
+        self.match = Match(None, Board.from_seed(0))
 
     def test_new_game_is_clean(self):
-        self.assertEqual(self.game.moves, 5)
-        self.assertEqual(self.game.score, 0)
+        self.assertEqual(self.match.moves, 5)
+        self.assertEqual(self.match.score, 0)
 
     def test_skip_move(self):
-        moves = self.game.moves
-        self.game.skip_move()
+        moves = self.match.moves
+        self.match.skip_move()
 
-        self.assertEqual(self.game.moves, moves - 1)
-        self.assertEqual(self.game.score, 0)
+        self.assertEqual(self.match.moves, moves - 1)
+        self.assertEqual(self.match.score, 0)
 
     def test_simple_move(self):
         set_fields_directions(
-            self.game.board,
+            self.match.board,
             '''
             >v>^>
             v^v>>
@@ -33,26 +33,27 @@ class GameTestCase(TestCase):
             '''
         )
 
-        moves = self.game.moves
-        self.game.start_move(0, 0)
+        moves = self.match.moves
+        self.match.start_move(4, 0)
 
         assert_fields_directions(
-            self.game.board,
+            self.match.board,
             '''
-            XX>^>
-            vXv>>
+            >v>^X
+            v^v>>
             vv<>>
             >>^>^
             >^<v^
             '''
         )
-        self.assertEqual(self.game.moves, moves - 1)
-        self.assertEqual(self.game.score, 3)
-        self.assertEqual(self.game.move_length, 3)
+        self.assertEqual(self.match.old_score, 0)
+        self.assertEqual(self.match.moves, moves - 1)
+        self.assertEqual(self.match.score, 1)
+        self.assertEqual(self.match.move_length, 1)
 
     def test_complex_move_through_gaps(self):
         set_fields_directions(
-            self.game.board,
+            self.match.board,
             '''
             >v>^>
             v^v>>
@@ -63,24 +64,24 @@ class GameTestCase(TestCase):
         )
 
         # setting points for a field that will be hit
-        self.game.board.get_field(2, 2).points = 4
+        self.match.board.get_field(2, 2).points = 4
 
         # setting points for a fields that will not change
-        self.game.board.get_field(4, 4).points = 8
-        self.game.board.get_field(2, 4).points = 8
-        self.game.board.get_field(0, 0).points = 8
+        self.match.board.get_field(4, 4).points = 8
+        self.match.board.get_field(2, 4).points = 8
+        self.match.board.get_field(0, 0).points = 8
 
         # setting points for fields that will change,
         # but not because of being hit
-        self.game.board.get_field(1, 0).points = 6
-        self.game.board.get_field(4, 1).points = 6
-        self.game.board.get_field(2, 1).points = 6
+        self.match.board.get_field(1, 0).points = 6
+        self.match.board.get_field(4, 1).points = 6
+        self.match.board.get_field(2, 1).points = 6
 
-        moves = self.game.moves
-        self.game.start_move(2, 3)
+        moves = self.match.moves
+        self.match.start_move(2, 3)
 
         assert_fields_directions(
-            self.game.board,
+            self.match.board,
             '''
             >XXXX
             vXX^X
@@ -90,14 +91,14 @@ class GameTestCase(TestCase):
             '''
         )
         # Extra three moves for long move
-        self.assertEqual(self.game.moves, moves + 2)
+        self.assertEqual(self.match.moves, moves + 2)
         # 6 arrows for 1 point and 1 arrow for 4 points = 10 extra points
-        self.assertEqual(self.game.score, 10)
-        self.assertEqual(self.game.move_length, 7)
+        self.assertEqual(self.match.score, 10)
+        self.assertEqual(self.match.move_length, 7)
 
     def test_score_is_properly_added(self):
         set_fields_directions(
-            self.game.board,
+            self.match.board,
             '''
             <^^<<
             v^vv>
@@ -107,11 +108,11 @@ class GameTestCase(TestCase):
             '''
         )
 
-        self.game.start_move(2, 2)
-        self.game.board.get_field(4, 2).points = 2
+        self.match.start_move(2, 2)
+        self.match.board.get_field(4, 2).points = 2
 
         assert_fields_directions(
-            self.game.board,
+            self.match.board,
             '''
             <XX<<
             vX^v>
@@ -121,12 +122,12 @@ class GameTestCase(TestCase):
             '''
         )
         # 5 arrows hit = 5 extra points
-        self.assertEqual(self.game.score, 5)
+        self.assertEqual(self.match.score, 5)
 
-        self.game.start_move(3, 3)
+        self.match.start_move(3, 3)
 
         assert_fields_directions(
-            self.game.board,
+            self.match.board,
             '''
             <XXXX
             vX^<X
@@ -136,11 +137,11 @@ class GameTestCase(TestCase):
             '''
         )
         # 2 arrows for 1 point and 1 for 2 points hit = 4 extra points
-        self.assertEqual(self.game.score, 9)
+        self.assertEqual(self.match.score, 9)
 
     def test_clearing_vertical_lines(self):
         set_fields_directions(
-            self.game.board,
+            self.match.board,
             '''
             <^^<<
             v^vv>
@@ -150,11 +151,11 @@ class GameTestCase(TestCase):
             '''
         )
 
-        self.game.board.get_field(1, 3).points = 4
-        self.game.start_move(1, 2)
+        self.match.board.get_field(1, 3).points = 4
+        self.match.start_move(1, 2)
 
         assert_fields_directions(
-            self.game.board,
+            self.match.board,
             '''
             <X^<<
             vXvv>
@@ -163,11 +164,11 @@ class GameTestCase(TestCase):
             >Xvv^
             '''
         )
-        self.assertEqual(self.game.score, 58)
+        self.assertEqual(self.match.score, 58)
 
     def test_clearing_horizontal_lines(self):
         set_fields_directions(
-            self.game.board,
+            self.match.board,
             '''
             <^^<<
             v^vv>
@@ -177,11 +178,11 @@ class GameTestCase(TestCase):
             '''
         )
 
-        self.game.board.get_field(0, 2).points = 7
-        self.game.start_move(3, 2)
+        self.match.board.get_field(0, 2).points = 7
+        self.match.start_move(3, 2)
 
         assert_fields_directions(
-            self.game.board,
+            self.match.board,
             '''
             XXXXX
             <^^<<
@@ -190,4 +191,4 @@ class GameTestCase(TestCase):
             >^vv^
             '''
         )
-        self.assertEqual(self.game.score, 61)
+        self.assertEqual(self.match.score, 61)

@@ -2,12 +2,13 @@ from unittest import TestCase
 
 from ..board import Board
 from .utils import assert_fields_directions, set_fields_directions
+from ... import settings
 
 
 class BoardTestCase(TestCase):
 
     def setUp(self):
-        self.board = Board(5, 0)
+        self.board = Board.from_seed(0)
 
     def test_get_field(self):
         for x in range(self.board.size):
@@ -164,7 +165,9 @@ class BoardTestCase(TestCase):
         )
 
     def test_get_state(self):
-        board = Board(3, 0)
+        settings.BOARD_SIZE = 3
+        board = Board.from_seed(0)
+        settings.BOARD_SIZE = 5
         self.assertEqual(
             board.get_state(),
             [

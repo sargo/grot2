@@ -5,7 +5,6 @@ import textwrap
 import boto3
 import multidict
 from botocore.config import Config
-from botocore.vendored.requests.exceptions import ReadTimeout
 
 from .grotlogic.board import Board
 from .grotlogic.match import Match
@@ -118,6 +117,7 @@ def get_match(api_key, match_id):
     response = client.get_attributes(
         DomainName='matches',
         ItemName='{}_{}'.format(api_key, match_id),
+        ConsistentRead=True,
     )
     if 'Attributes' in response:
         return _get_match_obj(response['Attributes'])
@@ -125,57 +125,45 @@ def get_match(api_key, match_id):
 
 def update_match(api_key, match_id, match):
     match_key = api_key + '_' + match_id
-    client_nowait = boto3.client(
-        'sdb',
-        use_ssl=False,
-        config=Config(
-            connect_timeout=10,
-            read_timeout=0.01,
-            parameter_validation=settings.debug,
-            retries={'max_attempts': 0}
-        )
+    client.put_attributes(
+        DomainName='matches',
+        ItemName=match_key,
+        Attributes=[
+            {'Name': 'score', 'Value': str(match.score), 'Replace': True},
+            {'Name': 'moves', 'Value': str(match.moves), 'Replace': True},
+        ] + _split_long( match.board.random.getstate(), 'random_state'),
+        Expected={'Name': 'score', 'Value': str(match.old_score)},
     )
-    try:
-        client_nowait.put_attributes(
-            DomainName='matches',
-            ItemName=match_key,
-            Attributes=[
-                {'Name': 'score', 'Value': str(match.score), 'Replace': True},
-                {'Name': 'moves', 'Value': str(match.moves), 'Replace': True},
-            ] + _split_long( match.board.random.getstate(), 'random_state'),
-            Expected={'Name': 'score', 'Value': str(match.old_score)},
-        )
-    except ReadTimeout:
-        # for a matter of costs we just put data into db without waiting for a
-        # response if the write fail then user will play the same round again
-        pass
-
 
 def new_user(user_id, email, api_key):
     client.put_attributes(
         DomainName='users',
-        ItemName=user_id,
+        ItemName=api_key,
         Attributes=[
+            {'Name': 'api_key', 'Value': api_key, 'Replace': True},
             {'Name': 'user_id', 'Value': user_id, 'Replace': True},
             {'Name': 'email', 'Value': email, 'Replace': True},
-            {'Name': 'api_key', 'Value': api_key, 'Replace': True},
         ],
-        Expected={'Name': 'user_id', 'Exists': False},
+        Expected={'Name': 'api_key', 'Exists': False},
     )
 
 
 def get_user_id(api_key):
-    response = client.select(
-        SelectExpression="select user_id from users where api_key='{}'".format(api_key),
+    response = client.get_attributes(
+        DomainName='users',
+        ItemName=api_key,
+        AttributeNames=['user_id'],
+        ConsistentRead=True,
     )
-    users = response.get('Items', [])
-    if users:
-        return users[0]['Name']
+    return response['Attributes'][0]['Value']
 
 
 def _increment_total(user_id, attr_name, value):
     response = client.get_attributes(
-        DomainName='hof', ItemName=user_id, AttributeNames=[attr_name]
+        DomainName='hof',
+        ItemName=user_id,
+        AttributeNames=[attr_name],
+        ConsistentRead=True,
     )
     try:
         old_total = int(response['Attributes'][0]['Value'])

@@ -24,7 +24,7 @@ def json_urlopen(*args, **kwargs):
         response = err
 
     raw_data = response.read()
-    result = {'code': response.code, 'raw': raw_data}
+    result = {'code': response.code, 'raw': raw_data.decode()}
     try:
         result['json'] = json.loads(raw_data.decode())
     except ValueError:

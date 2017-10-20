@@ -70,6 +70,7 @@ class Match:
             'score': self.score,
             'moves': self.moves,
             'board': self.board.get_state() if board else None,
+            'preview': self.board.get_preview() if board else None,
             'bonus-multiplier': self.get_bonus_multiplier(),
         }
 

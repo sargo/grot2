@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from ..board import Board
-from .utils import assert_fields_directions, set_fields_directions
+from .utils import assert_fields_directions, set_fields_directions, LABELS
 from ... import settings
 
 
@@ -187,4 +187,36 @@ class BoardTestCase(TestCase):
                     board.get_field(2, 2).get_state(),
                 ],
             ],
+        )
+
+    def test_preview_do_not_change_state(self):
+        # generation of preview shouldn't change random state
+        # so generating second time we should get same preview
+        self.assertEqual(self.board.get_preview(), self.board.get_preview())
+
+    def test_fill_empty_fields_as_preview_predicted(self):
+        set_fields_directions(
+            self.board,
+            '''
+            00000
+            00000
+            00000
+            vvvvv
+            vvvvv
+            '''
+        )
+
+        preview = ''.join(
+            LABELS[f['direction']] for f in self.board.get_preview())
+        self.board.fill_empty_fields()
+
+        assert_fields_directions(
+            self.board,
+            '''
+            {}X
+            {}XX
+            {}XX
+            vvvvv
+            vvvvv
+            '''.format(preview[::3], preview[1::3], preview[2::3])
         )

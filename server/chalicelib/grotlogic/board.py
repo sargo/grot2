@@ -129,6 +129,15 @@ class Board:
 
         return extra_points
 
+    def get_preview(self):
+        saved_state = self.random.getstate()
+        result = [
+            Field(None, None, self.random).get_state()
+            for i in range(settings.PREVIEW_SIZE)
+        ]
+        self.random.setstate(saved_state)
+        return result
+
     def get_state(self):
         """
         Get the status of the board.

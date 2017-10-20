@@ -3,3 +3,4 @@ debug = False
 
 INIT_MOVES = 5
 BOARD_SIZE = 5
+PREVIEW_SIZE = BOARD_SIZE * 2

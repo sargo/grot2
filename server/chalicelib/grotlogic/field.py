@@ -18,9 +18,9 @@ class Field:
         self.direction = self.random.choice(DIRECTIONS)
 
     def get_state(self):
-        return {
-            'points': self.points,
-            'direction': self.direction,
-            'x': self.x,
-            'y': self.y,
-        }
+        result = {'points': self.points, 'direction': self.direction}
+        if self.x is not None:
+            result['x'] = self.x
+        if self.y is not None:
+            result['y'] = self.y
+        return result

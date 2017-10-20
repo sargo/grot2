@@ -5,7 +5,7 @@ from ..board import Board
 from .utils import assert_fields_directions, set_fields_directions
 
 
-class GameTestCase(TestCase):
+class MatchTestCase(TestCase):
 
     def setUp(self):
         self.match = Match(None, Board.from_seed(0))

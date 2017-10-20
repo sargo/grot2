@@ -78,7 +78,7 @@ window.cfg =
   ###
   Urls settings
   ###
-  scoreBoardLink: 'http://game.pythonfasterway.org/hall-of-fame/'
+  scoreBoardLink: 'http://grot2-game.lichota.pl/hall-of-fame/'
 
   ###
   Help description

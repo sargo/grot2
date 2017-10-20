@@ -11,7 +11,7 @@ fields in a row or in a column to get extra points. Collect as many points as
 possible!
 
 ## Competition
-You can play this game [online](http://game.pythonfasterway.org/game.html)
+You can play this game [online](http://grot2-game.lichota.pl/game.html)
 but the fun part starts when your algorithm will overpower other bots!
 
 For more details, see [grot2 client](client) readme.
@@ -20,7 +20,7 @@ For more details, see [grot2 client](client) readme.
 To make the results independent of randomness, all players
 play in the same conditions, that is, in consecutive matches
 players get the same sequence of arrows.
-[Hall of Fame](http://game.pythonfasterway.org/hall-of-fame.html)
+[Hall of Fame](http://grot2-game.lichota.pl/hall-of-fame.html)
 is ordered by the average points per match. The rating is
 updated when you start and finish a match so play all
 matches to the end to keep high average!

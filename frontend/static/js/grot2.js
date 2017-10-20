@@ -54,7 +54,7 @@
 
     /*
     Tween duration settings
-    
+
     Enables or disables possibility to pass
     ?speed=1..9 param to configure animation speed
      */
@@ -83,7 +83,7 @@
     /*
     Urls settings
      */
-    scoreBoardLink: 'http://game.pythonfasterway.org/hall-of-fame/',
+    scoreBoardLink: 'http://grot2-game.lichota.pl/hall-of-fame/',
 
     /*
     Help description
@@ -100,7 +100,7 @@
 
   /*
   Game engine.
-  
+
   Here we store all abstract classes of which
   will be used by game to draw stage, layers etc.
    */
@@ -113,7 +113,7 @@
 
       /*
       Widget class
-      
+
       This class is inherited by every widged used across the game.
       By widgets we understand any objects made from one ore more
       groups of objects (Shapes, Labels etc.)
@@ -191,7 +191,7 @@
 
       /*
       Layer class
-      
+
       This class is inherited by every layer used across the game.
       By layers we understand spearate canvases generated on the page
       that can contain multiple widgets, groups, shapes ect.
@@ -267,7 +267,7 @@
 
       /*
       RenderManager class
-      
+
       This class contains all basic logic necessary for rendering layers
       and keeping them up to date. HIt is heart of the game.
        */

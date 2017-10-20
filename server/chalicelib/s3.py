@@ -37,7 +37,7 @@ def update_hof(hof_data):
     try:
         client_nowait.upload_fileobj(
             io.BytesIO(html_page.encode()),
-            'game.pythonfasterway.org',
+            'grot2-game.lichota.pl',
             'hall-of-fame.html',
             ExtraArgs={'ACL': 'public-read', 'ContentType': 'text/html'}
         )

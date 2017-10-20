@@ -13,7 +13,7 @@ import game
 import utils
 
 
-SERVER = 'https://api.game.pythonfasterway.org'
+SERVER = 'https://api.grot2-game.lichota.pl'
 TOKEN_FILE = os.path.expanduser('~/.grot_token')
 
 _HELP = {

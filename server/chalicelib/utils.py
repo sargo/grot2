@@ -8,15 +8,22 @@ from botocore.config import Config
 from . import settings
 
 
-def get_boto3_client(service_name):
-    return boto3.client(
+def get_boto3_client(
         service_name,
         use_ssl=settings.USE_SSL,
+        connect_timeout=settings.CONNECT_TIMEOUT,
+        read_timeout=settings.READ_TIMEOUT,
+        parameter_validation=settings.PARAMS_VALIDATION,
+        max_retries=settings.MAX_RETRIES
+    ):
+    return boto3.client(
+        service_name,
+        use_ssl=use_ssl,
         config=Config(
-            connect_timeout=settings.CONNECT_TIMEOUT,
-            read_timeout=settings.READ_TIMEOUT,
-            parameter_validation=settings.PARAMS_VALIDATION,
-            retries={'max_attempts': settings.MAX_RETRIES},
+            connect_timeout=connect_timeout,
+            read_timeout=read_timeout,
+            parameter_validation=parameter_validation,
+            retries={'max_attempts': max_retries},
         )
     )
 

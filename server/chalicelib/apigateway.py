@@ -3,7 +3,7 @@ from . import settings
 from .utils import get_boto3_client, timeit
 
 
-client = get_boto3_client('apigateway')
+client = get_boto3_client('apigateway', use_ssl=True)
 
 
 @timeit

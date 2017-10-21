@@ -1,23 +1,13 @@
 import io
 import os.path
 
-import boto3
-from botocore.config import Config
 from botocore.vendored.requests.exceptions import ReadTimeout
 
 from . import settings
+from .utils import get_boto3_client, timeit
 
 
-client_nowait = boto3.client(
-    's3',
-    use_ssl=settings.USE_SSL,
-    config=Config(
-        connect_timeout=settings.CONNECT_TIMEOUT,
-        read_timeout=0.01,
-        parameter_validation=settings.PARAMS_VALIDATION,
-        retries={'max_attempts': 0}
-    )
-)
+client_nowait = get_boto3_client('s3', read_timeout=0.01, max_retries=0)
 
 HOF_TEMPLATE = os.path.join(
     os.path.dirname(__file__), 'templates', 'hall-of-fame.html')

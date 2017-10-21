@@ -187,7 +187,7 @@ class BottomBarWidget extends engine.Widget
             @buttonHelpGroup.add @imageQuestionMarkHelpLink
             @add @buttonHelpGroup
 
-        imageQuestionMarkObj.src = '/static/images/question-mark-icon.png'
+        imageQuestionMarkObj.src = '/images/question-mark-icon.png'
 
         @buttonHelpGroup.on 'mousedown touchstart', (event) =>
             game.renderManager.menuOverlay.fire 'showHelp'
@@ -204,7 +204,7 @@ class BottomBarWidget extends engine.Widget
             @add @hero
             @getLayer().draw()
 
-        logoImgObj.src = '/static/images/logo.png'
+        logoImgObj.src = '/images/logo.png'
 
         # group for menu button
         @buttonMenuGroup = new Kinetic.Group

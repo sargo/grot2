@@ -135,11 +135,11 @@ class MenuWidget extends engine.Widget
             fontStyle: cfg.fontStyle
             fill: cfg.fontMenuColor
 
-        resetGameImageObj.src = '/static/images/menu-new-game-icon.png'
-        scoreBoardImageObj.src = '/static/images/menu-high-score-icon.png'
-        helpImageObj.src = '/static/images/menu-help-icon.png'
-        aboutImageObj.src = '/static/images/menu-about-icon.png'
-        resumeImageObj.src = '/static/images/menu-resume-icon.png'
+        resetGameImageObj.src = '/images/menu-new-game-icon.png'
+        scoreBoardImageObj.src = '/images/menu-high-score-icon.png'
+        helpImageObj.src = '/images/menu-help-icon.png'
+        aboutImageObj.src = '/images/menu-about-icon.png'
+        resumeImageObj.src = '/images/menu-resume-icon.png'
 
         @resetGameImg.on 'mousedown touchstart', (event) =>
             window.location.replace(window.location.href)
@@ -301,8 +301,8 @@ class GameOverWidget extends engine.Widget
             fontStyle: cfg.fontStyle
             fill: cfg.fontMenuColor
 
-        resetGameImageObj.src = '/static/images/menu-new-game-icon.png'
-        scoreBoardImageObj.src = '/static/images/menu-high-score-icon.png'
+        resetGameImageObj.src = '/images/menu-new-game-icon.png'
+        scoreBoardImageObj.src = '/images/menu-high-score-icon.png'
 
         @resetGameImg.on 'mousedown touchstart', (event) =>
             window.location.replace(window.location.href)
@@ -462,7 +462,7 @@ class HelpWidget extends engine.Widget
             fontStyle: cfg.fontStyle
             fill: cfg.fontMenuColor
 
-        resumeImageObj.src = '/static/images/menu-resume-icon.png'
+        resumeImageObj.src = '/images/menu-resume-icon.png'
 
         @resumeImg.on 'mousedown touchstart', @close
         @resumeText.on 'mousedown touchstart', @close
@@ -564,7 +564,7 @@ class AboutWidget extends engine.Widget
             fontStyle: cfg.fontStyle
             fill: cfg.fontMenuColor
 
-        resumeImageObj.src = '/static/images/menu-resume-icon.png'
+        resumeImageObj.src = '/images/menu-resume-icon.png'
 
         @resumeImg.on 'mousedown touchstart', @close
         @resumeText.on 'mousedown touchstart', @close

@@ -2,26 +2,17 @@
 import random
 import textwrap
 
-import boto3
 import multidict
-from botocore.config import Config
 
+from . import settings
 from .grotlogic.board import Board
 from .grotlogic.match import Match
 from .grotlogic.player import Player
 from .grotlogic.random import DenseStateRandom
-from . import settings
+from .utils import get_boto3_client, timeit
 
 
-client = boto3.client(
-    'sdb',
-    use_ssl=False,
-    config=Config(
-        connect_timeout=10,
-        read_timeout=10,
-        parameter_validation=settings.debug,
-    )
-)
+client = get_boto3_client('sdb')
 
 
 def init_db():
@@ -40,10 +31,18 @@ def _parse_attrs(data):
     return multidict.MultiDict(((i['Name'], i['Value']) for i in data))
 
 
+def _get_first_attr(response, default=None):
+    try:
+        return response['Items'][0]['Attributes'][0]['Value']
+    except (KeyError, IndexError):
+        return default
+
+
 def _split_long(text, attr):
     return [
         {'Name': '{}_{}'.format(attr, i), 'Value': line, 'Replace': True}
-        for i, line in enumerate(textwrap.wrap(text, 1020, drop_whitespace=False))
+        for i, line in enumerate(
+            textwrap.wrap(text, 1020, drop_whitespace=False))
     ]
 
 
@@ -56,6 +55,32 @@ def _join_long(attrs, attr):
     return ''.join(lines)
 
 
+@timeit
+def _get_new_match_id(user_id):
+    # get last match is exist
+    response = client.select(
+        SelectExpression="""SELECT match_id FROM matches
+            WHERE user_id='{}' AND match_id IS NOT NULL
+            ORDER BY match_id DESC LIMIT 1""".format(user_id),
+        ConsistentRead=True,
+    )
+    # increment last match_id by 1
+    return str(int(_get_first_attr(response, '0')) + 1)
+
+
+@timeit
+def _get_new_match_seed(new_match_id):
+    # search for other users' matches with same match_id
+    response = client.select(
+        SelectExpression="""SELECT seed FROM matches
+            WHERE match_id='{}' LIMIT 1""".format(new_match_id.zfill(6)),
+        ConsistentRead=True,
+    )
+    # get seed from found match or generate new one
+    return _get_first_attr(response, random.getrandbits(128))
+
+
+@timeit
 def _insert_match(match_id, api_key, user_id, seed, random_state):
     match_key = api_key + '_' + match_id
     client.put_attributes(
@@ -68,10 +93,22 @@ def _insert_match(match_id, api_key, user_id, seed, random_state):
             {'Name': 'user_id', 'Value': user_id, 'Replace': True},
             {'Name': 'seed', 'Value': seed, 'Replace': True},
             {'Name': 'score', 'Value': '0', 'Replace': True},
-            {'Name': 'moves', 'Value': str(settings.INIT_MOVES), 'Replace': True},
+            {
+                'Name': 'moves',
+                'Value': str(settings.INIT_MOVES),
+                'Replace': True,
+            },
         ] + _split_long(random_state, 'random_state'),
         Expected={'Name': 'match_key', 'Exists': False},
     )
+
+
+def new_match(api_key, user_id):
+    new_match_id = _get_new_match_id(user_id)
+    seed = _get_new_match_seed(new_match_id)
+    random_state = DenseStateRandom(seed).getstate()
+    _insert_match(new_match_id, api_key, user_id, str(seed), random_state)
+    return new_match_id
 
 
 def _get_match_obj(match_state):
@@ -85,34 +122,7 @@ def _get_match_obj(match_state):
     )
 
 
-def new_match(api_key, user_id):
-    # get last match is exist
-    response = client.select(
-        SelectExpression="select match_id from matches where user_id='{}' and match_id is not null order by match_id desc limit 1".format(user_id),
-        ConsistentRead=True,
-    )
-    try:
-        # and increment it
-        new_match_id = str(int(response['Items'][0]['Attributes'][0]['Value']) + 1)
-    except (KeyError, IndexError):
-        new_match_id = '0'
-
-    # search for other users' matches
-    response = client.select(
-        SelectExpression="select seed from matches where match_id='{}' limit 1".format(new_match_id.zfill(6)),
-        ConsistentRead=True,
-    )
-    try:
-        seed = response['Items'][0]['Attributes'][0]['Value']
-    except (KeyError, IndexError):
-        seed = random.getrandbits(128)
-
-    random_state = DenseStateRandom(seed).getstate()
-    _insert_match(new_match_id, api_key, user_id, str(seed), random_state)
-
-    return new_match_id
-
-
+@timeit
 def get_match(api_key, match_id):
     response = client.get_attributes(
         DomainName='matches',
@@ -123,6 +133,7 @@ def get_match(api_key, match_id):
         return _get_match_obj(response['Attributes'])
 
 
+@timeit
 def update_match(api_key, match_id, match):
     match_key = api_key + '_' + match_id
     client.put_attributes(
@@ -131,10 +142,12 @@ def update_match(api_key, match_id, match):
         Attributes=[
             {'Name': 'score', 'Value': str(match.score), 'Replace': True},
             {'Name': 'moves', 'Value': str(match.moves), 'Replace': True},
-        ] + _split_long( match.board.random.getstate(), 'random_state'),
+        ] + _split_long(match.board.random.getstate(), 'random_state'),
         Expected={'Name': 'score', 'Value': str(match.old_score)},
     )
 
+
+@timeit
 def new_user(user_id, email, api_key):
     client.put_attributes(
         DomainName='users',
@@ -148,6 +161,7 @@ def new_user(user_id, email, api_key):
     )
 
 
+@timeit
 def get_user_id(api_key):
     response = client.get_attributes(
         DomainName='users',
@@ -184,18 +198,21 @@ def _increment_total(user_id, attr_name, value):
     )
 
 
+@timeit
 def increment_total_matches(user_id):
     _increment_total(user_id, 'total_matches', 1)
 
 
+@timeit
 def increment_total_score(user_id, score):
     _increment_total(user_id, 'total_score', score)
 
 
+@timeit
 def get_hof_data():
     results = []
     response = client.select(
-        SelectExpression="select total_score, total_matches from hof",
+        SelectExpression="SELECT total_score, total_matches FROM hof",
         ConsistentRead=True,
     )
     for item in response.get('Items'):
@@ -212,9 +229,11 @@ def get_hof_data():
     return results
 
 
+@timeit
 def get_match_results(match_id):
     response = client.select(
-        SelectExpression="select user_id, score from matches where match_id='{}'".format(match_id.zfill(6)),
+        SelectExpression="""SELECT user_id, score FROM matches
+            WHERE match_id='{}'""".format(match_id.zfill(6)),
         ConsistentRead=True,
     )
     matches = response.get('Items', [])

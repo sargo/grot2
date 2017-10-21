@@ -10,11 +10,11 @@ from . import settings
 
 client_nowait = boto3.client(
     's3',
-    use_ssl=False,
+    use_ssl=settings.USE_SSL,
     config=Config(
-        connect_timeout=10,
+        connect_timeout=settings.CONNECT_TIMEOUT,
         read_timeout=0.01,
-        parameter_validation=settings.debug,
+        parameter_validation=settings.PARAMS_VALIDATION,
         retries={'max_attempts': 0}
     )
 )
@@ -37,11 +37,11 @@ def update_hof(hof_data):
     try:
         client_nowait.upload_fileobj(
             io.BytesIO(html_page.encode()),
-            'grot2-game.lichota.pl',
+            settings.FRONTEND_BUCKET_ID,
             'hall-of-fame.html',
             ExtraArgs={'ACL': 'public-read', 'ContentType': 'text/html'}
         )
     except ReadTimeout:
         # for a matter of costs we just upload file into s3 without waiting for a
-        # response if the write fail then hall of fame will not be updated
+        # response, if the write fail then hall of fame will not be updated
         pass

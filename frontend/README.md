@@ -3,10 +3,9 @@
 ## Build
 
 ``` bash
-cd src
-coffee --join ../static/js/grot2.js --compile -- config.coffee \
-       engine.coffee arrow.coffee control-bars.coffee board.coffee \
-       menu.coffee game.coffee
+coffee --join ../static/js/grot2.js --compile -- src/config.coffee \
+       src/engine.coffee src/arrow.coffee src/control-bars.coffee \
+       src/board.coffee src/menu.coffee src/game.coffee
 ```
 
 ## Update

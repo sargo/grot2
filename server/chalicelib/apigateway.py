@@ -1,20 +1,12 @@
-import boto3
-from botocore.config import Config
 
 from . import settings
+from .utils import get_boto3_client, timeit
 
 
-client = boto3.client(
-    'apigateway',
-    use_ssl=False,
-    config=Config(
-        connect_timeout=10,
-        read_timeout=10,
-        parameter_validation=settings.debug,
-    )
-)
+client = get_boto3_client('apigateway')
 
 
+@timeit
 def get_api_key(user_id):
     resp = client.get_api_keys(nameQuery=user_id, includeValues=True)
     items = resp.get('items')
@@ -22,6 +14,7 @@ def get_api_key(user_id):
         return items[0]['value']
 
 
+@timeit
 def new_api_key(user_id, email):
     response = client.create_api_key(
         name=user_id,
@@ -29,7 +22,7 @@ def new_api_key(user_id, email):
         enabled=True,
     )
     client.create_usage_plan_key(
-        usagePlanId='37vn6y',
+        usagePlanId=settings.API_USAGE_PLAN_ID,
         keyId=response['id'],
         keyType='API_KEY',
     )

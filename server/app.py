@@ -1,3 +1,4 @@
+import os
 import random
 
 from chalice import Chalice
@@ -10,8 +11,8 @@ from chalicelib import sdb
 from chalicelib import settings
 
 
-app = Chalice(app_name='grot2-server')
-app.debug = settings.debug
+app = Chalice(app_name=settings.APP_NAME)
+app.debug = settings.DEBUG
 
 
 @app.route('/')
@@ -27,8 +28,10 @@ def gh_oauth_endpoint():
 
     user_data = gh_oauth.get_user_data(
         gh_code,
-        app.current_request.stage_vars['GH_OAUTH_CLIENT_ID'],
-        app.current_request.stage_vars['GH_OAUTH_CLIENT_SECRET'],
+        app.current_request.stage_vars.get(
+            'GH_OAUTH_CLIENT_ID', os.environ.get('GH_OAUTH_CLIENT_ID')),
+        app.current_request.stage_vars.get(
+            'GH_OAUTH_CLIENT_SECRET', os.environ.get('GH_OAUTH_CLIENT_SECRET')),
     )
     if not user_data:
         raise BadRequestError('invalid code')

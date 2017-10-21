@@ -14,7 +14,7 @@ import utils
 
 
 SERVER = 'https://api.grot2-game.lichota.pl'
-TOKEN_FILE = os.path.expanduser('~/.grot_token')
+TOKEN_FILE = os.path.expanduser('~/.grot2_token')
 
 _HELP = {
     'help': 'Help on a specific subcommand',
@@ -61,9 +61,18 @@ elif subcmd == 'help':
     argparser.parse_args([args.subcommand, '--help'])
 
 elif subcmd == 'register':
-    with open(TOKEN_FILE, 'w') as f:
-        f.write(args.token)
-    print('Token have been saved.')
+    token = None
+    if len(args.token) == 40:
+        token = args.token
+    elif len(args.token) == 57 and args.token.startswith('{"x-api-key": '):
+        token = args.token[15:-2]
+
+    if token:
+        with open(TOKEN_FILE, 'w') as f:
+            f.write(token)
+        print('Token have been saved.')
+    else:
+        print('Invalid token!')
 
 else:
     try:

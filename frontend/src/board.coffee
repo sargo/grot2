@@ -1,4 +1,10 @@
-class Grot.FieldWidget extends GrotEngine.Widget
+arrow = require './arrow.coffee'
+cfg = require './config.coffee'
+engine = require './engine.coffee'
+utils = require './utils.coffee'
+
+
+class FieldWidget extends engine.Widget
     # A cirlcle with label. Circle color depends on field value (points), label shows
     # an arrow. Widget is resized and moved be Renderer.
 
@@ -23,12 +29,12 @@ class Grot.FieldWidget extends GrotEngine.Widget
 
     constructor: (config) ->
         super
-        if @field instanceof Grot.PreviewField
+        if @field instanceof PreviewField
             radius = cfg.previewCircleRadius
-            @arrow = smallArrow.clone()
+            @arrow = arrow.smallArrow.clone()
         else
             radius = cfg.circleRadius
-            @arrow = arrow.clone()
+            @arrow = arrow.bigArrow.clone()
 
         @relativeScale = @field.relativeScale
         @circle = new Kinetic.Circle
@@ -67,7 +73,7 @@ class Grot.FieldWidget extends GrotEngine.Widget
             widget.callback(widget.field, event)
 
 
-class Grot.Field
+class Field
     # State of field on a board.
 
     x: null
@@ -93,7 +99,7 @@ class Grot.Field
         @relativeScale = @board.fieldRelativeScale
         @preview = @board.preview
         @reset()
-        @widget = new Grot.FieldWidget
+        @widget = new FieldWidget
             field: @
 
     reset: () ->
@@ -124,7 +130,7 @@ class Grot.Field
         @id = "#{@x}-#{@y}"
 
 
-class Grot.PreviewField extends Grot.Field
+class PreviewField extends Field
     # Field preview
 
     constructor: (@board, @x) ->
@@ -132,7 +138,7 @@ class Grot.PreviewField extends Grot.Field
         @renderManager = @board.renderManager
         @relativeScale = @board.fieldRelativeScale
         @randomParams()
-        @widget = new Grot.FieldWidget
+        @widget = new FieldWidget
             field: @
 
     randomParams: ->
@@ -144,8 +150,8 @@ class Grot.PreviewField extends Grot.Field
             'green', 'green',
             'red'
         ]
-        @value = randomChoice(points)
-        @direction = randomChoice(['left', 'right', 'up', 'down'])
+        @value = utils.randomChoice(points)
+        @direction = utils.randomChoice(['left', 'right', 'up', 'down'])
 
     getFieldCenter: () ->
         # calculate positions of a field widget
@@ -166,13 +172,13 @@ class Grot.PreviewField extends Grot.Field
         @updatePosition(@x-1)
 
 
-class Grot.Preview
+class Preview
     # queue with next fields
 
     fields: []
 
     constructor: (@board, @size) ->
-        @fields = (new Grot.PreviewField(@board, x) for x in [0..@size*2-1])
+        @fields = (new PreviewField(@board, x) for x in [0..@size*2-1])
 
     pop: ->
         field = @fields.shift()
@@ -182,7 +188,7 @@ class Grot.Preview
         for i in @fields
             i.shift()
 
-        newField = new Grot.PreviewField @board, @size*2-1
+        newField = new PreviewField @board, @size*2-1
         newField.widget.setOpacity 0 # will be shown by addWidgets later
         @fields.push newField
         @board.add newField.widget
@@ -190,7 +196,7 @@ class Grot.Preview
         return result
 
 
-class Grot.Board extends GrotEngine.Layer
+class Board extends engine.Layer
     # Grid of fields.
 
     size: 9
@@ -226,11 +232,11 @@ class Grot.Board extends GrotEngine.Layer
         # create size x size board, calculate initial value of fields
         for x in [0..@size-1]
             @fields.push (
-                new Grot.Field @, x, y for y in [0..@size-1]
+                new Field @, x, y for y in [0..@size-1]
             )
 
     createPreview: () ->
-        @preview = new Grot.Preview @, @size
+        @preview = new Preview @, @size
         @preview.pop()
 
     getNextField: (field, lastDirection=null) ->
@@ -288,3 +294,7 @@ class Grot.Board extends GrotEngine.Layer
         @fields[newX][newY].updatePosition(newX, newY)
 
         return [newX, newY]
+
+
+define [], () ->
+    Board: Board

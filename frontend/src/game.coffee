@@ -1,11 +1,10 @@
 # GROT - html5 canvas game
-
-window.TWEEN_DURATION = (10 - cfg.defaultSpeed) * cfg.tweenDurationUnit
-window.delay1s = (func) -> setTimeout func, 1000
-
-window.randomChoice = (values) ->
-    # http://rosettacode.org/wiki/Pick_random_element#CoffeeScript
-    return values[Math.floor(Math.random() * values.length)]
+cfg = require './config.coffee'
+engine = require './engine.coffee'
+board = require './board.coffee'
+menu = require './menu.coffee'
+ctrl_bars = require './control-bars.coffee'
+utils = require './utils.coffee'
 
 
 class QueryString
@@ -22,7 +21,7 @@ class QueryString
             return value if key is name
 
 
-class RenderManager extends GrotEngine.RenderManager
+class RenderManager extends engine.RenderManager
     # Manage canvas and widgets
 
     board: null
@@ -69,13 +68,13 @@ class RenderManager extends GrotEngine.RenderManager
 
     addLayers: ->
         previewHeight = if @showPreview then cfg.previewHeight else 0
-        @barsLayer = new GrotEngine.Layer
+        @barsLayer = new engine.Layer
             width: 600
             height: 900+previewHeight
             margins: {x: 0, y: 0}
             renderManager: @
 
-        @board = new Grot.Board
+        @board = new board.Board
             size: @boardSize
             showPreview: @showPreview
             renderManager: @
@@ -86,7 +85,7 @@ class RenderManager extends GrotEngine.RenderManager
         @game.board = @board
 
         # create next layers only for animations (better performance)
-        @animLayer = new GrotEngine.Layer
+        @animLayer = new engine.Layer
             hitGraphEnabled: false
             margins: {x: 0, y: 180}
             width: 600
@@ -94,7 +93,7 @@ class RenderManager extends GrotEngine.RenderManager
             renderManager: @
 
         #create overlay for menu/gameover/help view
-        @menuOverlay = new Grot.MenuOverlay
+        @menuOverlay = new menu.MenuOverlay
             width: 600
             height: 900+previewHeight
             margins: {x: 0, y: 0}
@@ -102,10 +101,10 @@ class RenderManager extends GrotEngine.RenderManager
             showPreview: @showPreview
 
     addWidgets: ->
-        @topBarWidget = new Grot.TopBarWidget
+        @topBarWidget = new ctrl_bars.TopBarWidget
             game: @game
             showPreview: @showPreview
-        @bottomBarWidget = new Grot.BottomBarWidget
+        @bottomBarWidget = new ctrl_bars.BottomBarWidget
             game: @game
             showPreview: @showPreview
 
@@ -202,7 +201,7 @@ class RenderManager extends GrotEngine.RenderManager
 
         tween = new Kinetic.Tween
             node: startField.widget
-            duration: window.TWEEN_DURATION
+            duration: cfg.tweenDuration
             x: centerX
             y: centerY
             opacity: 0
@@ -256,7 +255,7 @@ class RenderManager extends GrotEngine.RenderManager
                         tweens.push new Kinetic.Tween
                             node: field.widget
                             easing: Kinetic.Easings.BounceEaseOut,
-                            duration: window.TWEEN_DURATION
+                            duration: cfg.tweenDuration
                             x: centerX
                             y: centerY
                             onFinish: =>
@@ -293,7 +292,7 @@ class RenderManager extends GrotEngine.RenderManager
                     tweens.push new Kinetic.Tween
                         node: field.widget
                         opacity: 1
-                        duration: window.TWEEN_DURATION
+                        duration: cfg.tweenDuration
                         onFinish: =>
                             `this.destroy()`
 
@@ -331,7 +330,7 @@ class RenderManager extends GrotEngine.RenderManager
                             y: centerY
                             scaleX: 2
                             scaleY: 2
-                            duration: window.TWEEN_DURATION
+                            duration: cfg.tweenDuration
                             onFinish: =>
                                 `this.destroy()`
 
@@ -348,7 +347,7 @@ class RenderManager extends GrotEngine.RenderManager
                     node: previewField.widget
                     x: centerX
                     y: centerY
-                    duration: window.TWEEN_DURATION
+                    duration: cfg.tweenDuration
                     onFinish: =>
                         `this.destroy()`
 
@@ -382,7 +381,7 @@ class RenderManager extends GrotEngine.RenderManager
                 tweens.push new Kinetic.Tween
                     node: previewField.widget
                     opacity: 1
-                    duration: window.TWEEN_DURATION
+                    duration: cfg.tweenDuration
                     onFinish: =>
                         `this.destroy()`
 
@@ -428,7 +427,7 @@ class RenderManager extends GrotEngine.RenderManager
             @gameOver(@game)
 
 
-class Game extends GrotEngine.Game
+class Game extends engine.Game
     board: null
     score: 0
     scoreDiff: 0
@@ -452,10 +451,10 @@ class Game extends GrotEngine.Game
 
         speed = if cfg.customSpeed and qsSpeed and qsSpeed > 0 and qsSpeed < 10
         then qsSpeed else cfg.defaultSpeed
-        window.TWEEN_DURATION = (10 - speed) * cfg.tweenDurationUnit
+        cfg.tweenDuration = (10 - speed) * cfg.tweenDurationUnit
 
         @renderManager = new RenderManager boardSize, showPreview, @
 
 
-document.body.style.cssText = 'background-color: ' + cfg.bodyColor + '; margin: 0; padding: 0;'
-window.game = game = new Game()
+define [], () ->
+    Game: Game

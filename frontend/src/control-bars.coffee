@@ -1,5 +1,9 @@
+cfg = require './config.coffee'
+engine = require './engine.coffee'
+utils = require './utils.coffee'
 
-class Grot.TopBarWidget extends GrotEngine.Widget
+
+class TopBarWidget extends engine.Widget
     # Top bar which displays current game stats
 
     game: null
@@ -99,11 +103,11 @@ class Grot.TopBarWidget extends GrotEngine.Widget
         @add line
 
     delayAnim: (diff) =>
-        delay1s =>
+        utils.delay1s =>
             tween = new Kinetic.Tween
                 node: diff
                 opacity: 0
-                duration: window.TWEEN_DURATION
+                duration: cfg.tweenDuration
                 onFinish: ->
                     @destroy()
 
@@ -136,7 +140,7 @@ class Grot.TopBarWidget extends GrotEngine.Widget
         @getLayer().draw()
 
 
-class Grot.BottomBarWidget extends GrotEngine.Widget
+class BottomBarWidget extends engine.Widget
     # Bottom bar which displays help button
 
     label: null
@@ -238,3 +242,8 @@ class Grot.BottomBarWidget extends GrotEngine.Widget
 
     scale: (scale) ->
         @scale {x: scale, y: scale}
+
+
+define [], () ->
+    TopBarWidget: TopBarWidget
+    BottomBarWidget: BottomBarWidget

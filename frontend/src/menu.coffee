@@ -1,4 +1,8 @@
-class Grot.MenuWidget extends GrotEngine.Widget
+cfg = require './config.coffee'
+engine = require './engine.coffee'
+
+
+class MenuWidget extends engine.Widget
     # Menu widget
 
     group: null
@@ -18,7 +22,7 @@ class Grot.MenuWidget extends GrotEngine.Widget
             fill: cfg.overlayColor
             opacity: 0.9
 
-        @container = new GrotEngine.Widget
+        @container = new engine.Widget
             width: 600
             height: 900+previewHeight
             margins: {x: 0, y: 0}
@@ -199,7 +203,7 @@ class Grot.MenuWidget extends GrotEngine.Widget
         @menuLayer.fire 'closeMenuOverlay'
 
 
-class Grot.GameOverWidget extends GrotEngine.Widget
+class GameOverWidget extends engine.Widget
     # Game over widget
 
     game: null
@@ -218,7 +222,7 @@ class Grot.GameOverWidget extends GrotEngine.Widget
             fill: cfg.overlayColor
             opacity: 0.9
 
-        @container = new GrotEngine.Widget
+        @container = new engine.Widget
             width: 600
             height: 900+previewHeight
             margins: {x: 0, y: 0}
@@ -344,7 +348,7 @@ class Grot.GameOverWidget extends GrotEngine.Widget
         @menuLayer.fire 'closeMenuOverlay'
 
 
-class Grot.HelpWidget extends GrotEngine.Widget
+class HelpWidget extends engine.Widget
     # help widget
 
     game: null
@@ -363,7 +367,7 @@ class Grot.HelpWidget extends GrotEngine.Widget
             fill: cfg.overlayColor
             opacity: 0.9
 
-        @container = new GrotEngine.Widget
+        @container = new engine.Widget
             width: 600
             height: 900+previewHeight
             margins: {x: 0, y: 0}
@@ -396,7 +400,7 @@ class Grot.HelpWidget extends GrotEngine.Widget
             fontSize: 30
             text: 'Points:'
 
-        @pointsVisualisation = new GrotEngine.Widget
+        @pointsVisualisation = new engine.Widget
             width: 580
             height: 42
             x: 10
@@ -496,7 +500,7 @@ class Grot.HelpWidget extends GrotEngine.Widget
         @menuLayer.fire 'closeMenuOverlay'
 
 
-class Grot.AboutWidget extends GrotEngine.Widget
+class AboutWidget extends engine.Widget
     # about widget
 
     game: null
@@ -515,7 +519,7 @@ class Grot.AboutWidget extends GrotEngine.Widget
             fill: cfg.overlayColor
             opacity: 0.9
 
-        @container = new GrotEngine.Widget
+        @container = new engine.Widget
             width: 600
             height: 900+previewHeight
             margins: {x: 0, y: 0}
@@ -588,7 +592,7 @@ class Grot.AboutWidget extends GrotEngine.Widget
         @menuLayer.fire 'closeMenuOverlay'
 
 
-class Grot.MenuOverlay extends GrotEngine.Layer
+class MenuOverlay extends engine.Layer
     # Menu, GameOver, Help, About widgets
 
     showPreview: false
@@ -597,19 +601,19 @@ class Grot.MenuOverlay extends GrotEngine.Layer
     constructor: ->
         super
 
-        @gameOverWidget = new Grot.GameOverWidget
+        @gameOverWidget = new GameOverWidget
             menuLayer: @
             showPreview: @showPreview
 
-        @menuWidget = new Grot.MenuWidget
+        @menuWidget = new MenuWidget
             menuLayer: @
             showPreview: @showPreview
 
-        @helpWidget = new Grot.HelpWidget
+        @helpWidget = new HelpWidget
             menuLayer: @
             showPreview: @showPreview
 
-        @aboutWidget = new Grot.AboutWidget
+        @aboutWidget = new AboutWidget
             menuLayer: @
             showPreview: @showPreview
 
@@ -656,3 +660,11 @@ class Grot.MenuOverlay extends GrotEngine.Layer
         @fire 'onOverlayOpen'
         @add @aboutWidget
         @aboutWidget.fire 'aboutDraw'
+
+
+define [], () ->
+    MenuWidget: MenuWidget
+    GameOverWidget: GameOverWidget
+    HelpWidget: HelpWidget
+    AboutWidget: AboutWidget
+    MenuOverlay: MenuOverlay

@@ -1,3 +1,6 @@
+cfg = require './config.coffee'
+
+
 arrowCommands = [
         y: -12.40625
         x: -3.38671875
@@ -234,15 +237,14 @@ drawArrow = (ctx, scale) ->
         i += 1
 
 
-arrow = new Kinetic.Shape
-    sceneFunc: (ctx) ->
-        drawArrow ctx, 1.5
-        ctx.fillStrokeShape this
-    fill: cfg.arrowColor
-
-
-smallArrow = new Kinetic.Shape
-    sceneFunc: (ctx) ->
-        drawArrow ctx, 0.75
-        ctx.fillStrokeShape this
-    fill: cfg.arrowColor
+define [], () ->
+    bigArrow: new Kinetic.Shape
+        sceneFunc: (ctx) ->
+            drawArrow ctx, 1.5
+            ctx.fillStrokeShape this
+        fill: cfg.arrowColor
+    smallArrow: new Kinetic.Shape
+        sceneFunc: (ctx) ->
+            drawArrow ctx, 0.75
+            ctx.fillStrokeShape this
+        fill: cfg.arrowColor

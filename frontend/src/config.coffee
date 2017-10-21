@@ -1,4 +1,4 @@
-window.cfg =
+define () ->
   ###
   Board size
   ###
@@ -56,6 +56,7 @@ window.cfg =
 
   defaultSpeed: 6
   tweenDurationUnit: 0.1
+  tweenDuration: (10 - @defaultSpeed) * @tweenDurationUnit
 
   ###
   Font settings

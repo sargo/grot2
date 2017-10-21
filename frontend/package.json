@@ -1,0 +1,25 @@
+{
+  "name": "grot2-frontend",
+  "version": "2.0.0",
+  "description": "GROT2 game frontend",
+  "main": "src/index.coffee",
+  "scripts": {
+    "build": "node_modules/webpack/bin/webpack.js",
+    "watch": "node_modules/webpack/bin/webpack.js --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:sargo/grot2.git"
+  },
+  "author": "Wojciech Lichota <wojciech@lichota.pl>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sargo/grot2/issues"
+  },
+  "dependencies": {
+    "coffee-loader": "^0.8.0",
+    "coffee-script": "^1.12.7",
+    "coffeescript": "^1.12.7",
+    "webpack": "^3.8.1"
+  }
+}

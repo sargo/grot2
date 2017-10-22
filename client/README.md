@@ -58,15 +58,15 @@ http PUT https://api.grot2-game.lichota.pl/match X-Api-Key:`cat ~/.grot2_token`
 
 Get match state:
 ``` bash
-http https://api.grot2-game.lichota.pl/match/0 X-Api-Key:`cat ~/.grot2_token`
+http https://api.grot2-game.lichota.pl/match/1 X-Api-Key:`cat ~/.grot2_token`
 ```
 
 Make a move:
 ``` bash
-http POST https://api.grot2-game.lichota.pl/match/0 X-Api-Key:`cat ~/.grot2_token` x=0 y=0
+http POST https://api.grot2-game.lichota.pl/match/1 X-Api-Key:`cat ~/.grot2_token` row=0 col=0
 ```
 
 Show match results:
 ``` bash
-http https://api.grot2-game.lichota.pl/match/0/results
+http https://api.grot2-game.lichota.pl/match/1/results
 ```

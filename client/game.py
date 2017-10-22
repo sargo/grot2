@@ -12,8 +12,8 @@ def get_move(data):
     Get coordinates (start point) of next move.
     """
     return {
-        'x': random.randint(0, 4),
-        'y': random.randint(0, 4),
+        'row': random.randint(0, 4),
+        'col': random.randint(0, 4),
     }
 
 

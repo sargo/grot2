@@ -1,4 +1,4 @@
-from random import Random
+from ..random import DenseStateRandom
 from unittest import TestCase
 
 from ..field import Field
@@ -7,12 +7,12 @@ from ..field import Field
 class FieldTestCase(TestCase):
 
     def setUp(self):
-        self.random = Random()
+        self.random = DenseStateRandom()
         self.field = Field(0, 0, self.random)
 
     def test_reset(self):
         points = set([1, 2, 3, 4])
-        directions = set(['left', 'right', 'up', 'down'])
+        directions = set(['<', '>', '^', 'v'])
 
         used_points = set()
         used_directions = set()
@@ -33,11 +33,14 @@ class FieldTestCase(TestCase):
 
     def test_reset_uses_provided_random(self):
         def get_states_for_seed(seed):
-            field = Field(0, 0, Random(seed))
+            field = Field(0, 0, DenseStateRandom(seed))
             states = []
             for i in range(100):
                 field.reset()
-                states.append(field.get_state())
+                states.append({
+                    'points': field.points,
+                    'direction': field.direction,
+                })
             return states
 
         states1 = get_states_for_seed(0.3)
@@ -53,17 +56,3 @@ class FieldTestCase(TestCase):
         self.assertEqual(states5, states6)
         self.assertNotEqual(states1, states4)
 
-    def test_get_state(self):
-        self.field.points = 4
-        self.field.direction = 'right'
-        self.assertDictEqual(
-            self.field.get_state(),
-            {'points': 4, 'direction': 'right', 'x': 0, 'y': 0},
-        )
-
-        self.field.points = 42
-        self.field.direction = 'foo'
-        self.assertDictEqual(
-            self.field.get_state(),
-            {'points': 42, 'direction': 'foo', 'x': 0, 'y': 0},
-        )

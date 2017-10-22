@@ -30,11 +30,18 @@ class MatchTestCase(TestCase):
             vv<>>
             >>^>^
             >^<v^
+            ''',
+            '''
+            11111
+            11111
+            11111
+            11111
+            11111
             '''
         )
 
         moves = self.match.moves
-        self.match.start_move(4, 0)
+        self.match.start_move(0, 4)
 
         assert_fields_directions(
             self.match.board,
@@ -60,25 +67,17 @@ class MatchTestCase(TestCase):
             vv<>>
             >>^>^
             >^<v^
+            ''',
+            '''
+            11111
+            11111
+            12212
+            12222
+            11111
             '''
         )
-
-        # setting points for a field that will be hit
-        self.match.board.get_field(2, 2).points = 4
-
-        # setting points for a fields that will not change
-        self.match.board.get_field(4, 4).points = 8
-        self.match.board.get_field(2, 4).points = 8
-        self.match.board.get_field(0, 0).points = 8
-
-        # setting points for fields that will change,
-        # but not because of being hit
-        self.match.board.get_field(1, 0).points = 6
-        self.match.board.get_field(4, 1).points = 6
-        self.match.board.get_field(2, 1).points = 6
-
         moves = self.match.moves
-        self.match.start_move(2, 3)
+        self.match.start_move(3, 2)
 
         assert_fields_directions(
             self.match.board,
@@ -90,10 +89,8 @@ class MatchTestCase(TestCase):
             >^<v^
             '''
         )
-        # Extra three moves for long move
         self.assertEqual(self.match.moves, moves + 2)
-        # 6 arrows for 1 point and 1 arrow for 4 points = 10 extra points
-        self.assertEqual(self.match.score, 10)
+        self.assertEqual(self.match.score, 14)
         self.assertEqual(self.match.move_length, 7)
 
     def test_score_is_properly_added(self):
@@ -105,12 +102,16 @@ class MatchTestCase(TestCase):
             ^v<v>
             >^<>^
             >^vv^
+            ''',
+            '''
+            11111
+            11111
+            11111
+            11111
+            11111
             '''
         )
-
         self.match.start_move(2, 2)
-        self.match.board.get_field(4, 2).points = 2
-
         assert_fields_directions(
             self.match.board,
             '''
@@ -121,11 +122,8 @@ class MatchTestCase(TestCase):
             >^vv^
             '''
         )
-        # 5 arrows hit = 5 extra points
         self.assertEqual(self.match.score, 5)
-
         self.match.start_move(3, 3)
-
         assert_fields_directions(
             self.match.board,
             '''
@@ -136,8 +134,7 @@ class MatchTestCase(TestCase):
             >^vv^
             '''
         )
-        # 2 arrows for 1 point and 1 for 2 points hit = 4 extra points
-        self.assertEqual(self.match.score, 9)
+        self.assertEqual(self.match.score, 8)
 
     def test_clearing_vertical_lines(self):
         set_fields_directions(
@@ -148,12 +145,18 @@ class MatchTestCase(TestCase):
             ^v<v>
             >v<>^
             >^vv^
+            ''',
+            '''
+            12111
+            13111
+            14111
+            13111
+            12111
             '''
         )
-
-        self.match.board.get_field(1, 3).points = 4
-        self.match.start_move(1, 2)
-
+        self.assertEqual(self.match.score, 0)
+        self.assertEqual(self.match.moves, 5)
+        self.match.start_move(2, 1)
         assert_fields_directions(
             self.match.board,
             '''
@@ -164,7 +167,8 @@ class MatchTestCase(TestCase):
             >Xvv^
             '''
         )
-        self.assertEqual(self.match.score, 58)
+        self.assertEqual(self.match.score, 64)
+        self.assertEqual(self.match.moves, 6)
 
     def test_clearing_horizontal_lines(self):
         set_fields_directions(
@@ -175,12 +179,18 @@ class MatchTestCase(TestCase):
             ><<<>
             >v<>^
             >^vv^
+            ''',
+            '''
+            11111
+            11111
+            23432
+            11111
+            11111
             '''
         )
-
-        self.match.board.get_field(0, 2).points = 7
-        self.match.start_move(3, 2)
-
+        self.assertEqual(self.match.score, 0)
+        self.assertEqual(self.match.moves, 5)
+        self.match.start_move(2, 3)
         assert_fields_directions(
             self.match.board,
             '''
@@ -191,4 +201,5 @@ class MatchTestCase(TestCase):
             >^vv^
             '''
         )
-        self.assertEqual(self.match.score, 61)
+        self.assertEqual(self.match.score, 64)
+        self.assertEqual(self.match.moves, 6)

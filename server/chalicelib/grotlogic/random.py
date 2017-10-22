@@ -2,24 +2,37 @@ import base64
 import binascii
 import random
 
+from ..utils import timeit
+
 
 class DenseStateRandom(random.Random):
     """
-    A Random class with dense state.
+    A Random class with match smaller state size but setstate will
+    have to compute many randoms to recreate the state
     """
+    _counter = 0
+    _seed = None
+
+    def __init__(self, seed=None):
+        self._seed = seed
+        super().__init__(seed)
+
+    def random(self):
+        self._counter += 1
+        return super().random()
 
     def getstate(self):
-        def _pack(number):
-            text = hex(number)[2:]
-            if len(text) % 2:
-                text = '0' + text
-            return base64.a85encode(binascii.unhexlify(text)).decode()
+        return '{}-{}'.format(self._seed, self._counter)
 
-        return ' '.join(map(_pack, super().getstate()[1]))
-
+    @timeit
     def setstate(self, state):
-        def _unpack(text):
-            return int(binascii.hexlify(base64.a85decode(text)).decode(), 16)
+        seed, counter = state.split('-')
+        self._seed = int(seed)
 
-        return super().setstate(
-            [self.VERSION, tuple(map(_unpack, state.split(' '))), None])
+        # reset to initial state
+        self.seed(self._seed)
+        self._counter = 0
+
+        # run random the same times
+        for i in range(int(counter)):
+            self.random()

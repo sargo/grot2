@@ -1,14 +1,12 @@
 
+import json
 import random
-import textwrap
 
 import multidict
 
 from . import settings
 from .grotlogic.board import Board
 from .grotlogic.match import Match
-from .grotlogic.player import Player
-from .grotlogic.random import DenseStateRandom
 from .utils import get_boto3_client, timeit
 
 
@@ -38,23 +36,6 @@ def _get_first_attr(response, default=None):
         return default
 
 
-def _split_long(text, attr):
-    return [
-        {'Name': '{}_{}'.format(attr, i), 'Value': line, 'Replace': True}
-        for i, line in enumerate(
-            textwrap.wrap(text, 1020, drop_whitespace=False))
-    ]
-
-
-def _join_long(attrs, attr):
-    lines = []
-    i = 0
-    while '{}_{}'.format(attr, i) in attrs:
-        lines.append(attrs['{}_{}'.format(attr, i)])
-        i += 1
-    return ''.join(lines)
-
-
 @timeit
 def _get_new_match_id(user_id):
     # get last match is exist
@@ -81,7 +62,7 @@ def _get_new_match_seed(new_match_id):
 
 
 @timeit
-def _insert_match(match_id, api_key, user_id, seed, random_state):
+def _insert_match(match_id, api_key, user_id, seed, state):
     match_key = api_key + '_' + match_id
     client.put_attributes(
         DomainName='matches',
@@ -93,12 +74,8 @@ def _insert_match(match_id, api_key, user_id, seed, random_state):
             {'Name': 'user_id', 'Value': user_id, 'Replace': True},
             {'Name': 'seed', 'Value': seed, 'Replace': True},
             {'Name': 'score', 'Value': '0', 'Replace': True},
-            {
-                'Name': 'moves',
-                'Value': str(settings.INIT_MOVES),
-                'Replace': True,
-            },
-        ] + _split_long(random_state, 'random_state'),
+            {'Name': 'state', 'Value': json.dumps(state), 'Replace': True},
+        ],
         Expected={'Name': 'match_key', 'Exists': False},
     )
 
@@ -106,20 +83,14 @@ def _insert_match(match_id, api_key, user_id, seed, random_state):
 def new_match(api_key, user_id):
     new_match_id = _get_new_match_id(user_id)
     seed = _get_new_match_seed(new_match_id)
-    random_state = DenseStateRandom(seed).getstate()
-    _insert_match(new_match_id, api_key, user_id, str(seed), random_state)
+    state = Match(user_id, Board.from_seed(seed)).get_state(show_random=True)
+    _insert_match(new_match_id, api_key, user_id, str(seed), state)
     return new_match_id
 
 
 def _get_match_obj(match_state):
     attrs = _parse_attrs(match_state)
-    random_state = _join_long(attrs, 'random_state')
-    return Match(
-        Player(attrs['user_id']),
-        Board.from_random_state(random_state),
-        int(attrs['score']),
-        int(attrs['moves']),
-    )
+    return Match.from_state(json.loads(attrs['state']))
 
 
 @timeit
@@ -141,8 +112,12 @@ def update_match(api_key, match_id, match):
         ItemName=match_key,
         Attributes=[
             {'Name': 'score', 'Value': str(match.score), 'Replace': True},
-            {'Name': 'moves', 'Value': str(match.moves), 'Replace': True},
-        ] + _split_long(match.board.random.getstate(), 'random_state'),
+            {
+                'Name': 'state',
+                'Value': json.dumps(match.get_state(show_random=True)),
+                'Replace': True
+            },
+        ],
         Expected={'Name': 'score', 'Value': str(match.old_score)},
     )
 

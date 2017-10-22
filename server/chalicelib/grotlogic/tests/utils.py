@@ -1,78 +1,36 @@
-DIRECTION_MAP = {
-    '<': 'left',
-    '>': 'right',
-    '^': 'up',
-    'v': 'down',
-    'O': None,
-}
-LABELS = {v: k for k, v in DIRECTION_MAP.items()}
+
+from ..board import Board
 
 
-def set_fields_directions(board, field_map, start=0, end=None):
-    rows = [row.strip() for row in field_map.strip().split('\n')]
-    end = board.size if end is None else end
-
-    if len(rows) != end - start:
-        raise ValueError('Invalid field map height!')
-
-    for y in range(start, end):
-        row = rows[y]
-
-        if len(row) != board.size:
-            raise ValueError('Invalid field map width for row {}!'.format(y))
-
-        for x in range(board.size):
-            direction = DIRECTION_MAP.get(row[x])
-
-            field = board.get_field(x, y)
-            field.direction = direction
-            field.points = 1
+def _clean(text):
+    return text.replace(' ', '').strip()
 
 
-def assert_fields_directions(board, field_map, start=0, end=None):
-    rows = [row.strip() for row in field_map.strip().split('\n')]
-    end = board.size if end is None else end
+def set_fields_directions(board, directions_state=None, points_state=None):
+    state = board.get_state()
+    if directions_state:
+        state['directions'] = _clean(directions_state)
+    if points_state:
+        state['points'] = _clean(points_state)
+    board.fields = Board.from_state(state).fields
 
-    if len(rows) != end - start:
-        raise ValueError('Invalid field map height!')
 
-    for y in range(start, end):
-        row = rows[y]
+def assert_fields_directions(board, directions_state):
+    data = _clean(directions_state).split('\n')
+    for row in range(board.size):
+        for col in range(board.size):
+            field = board.get_field(row, col)
+            direction = data[row][col]
 
-        if len(row) != board.size:
-            raise ValueError('Invalid field map width for row {}!'.format(y))
-
-        for x in range(board.size):
-            field = board.get_field(x, y)
-
-            assert field.direction in DIRECTION_MAP.values(), \
-                "Direction invalid ({}) at {},{}".format(
-                    field.direction,
-                    field.x,
-                    field.y,
-                )
-
-            if row[x] == 'X':
-                assert field.direction is not None, \
-                    "Direction is None at {},{}".format(
-                        field.x,
-                        field.y,
-                    )
+            if direction == 'X':
                 continue
+            elif direction == 'O':
+                direction == None
 
-            direction = DIRECTION_MAP.get(row[x])
             assert field.direction == direction, \
                 "Direction {} != {} at {},{}".format(
                     field.direction,
                     direction,
-                    field.x,
-                    field.y,
+                    row,
+                    col,
                 )
-
-
-def print_fields_directions(board):
-    for y in range(board.size):
-        for x in range(board.size):
-            print(LABELS.get(board.get_field(x, y).direction), end='')
-        print('')
-    print('\n')

@@ -7,59 +7,103 @@ from .. import settings
 
 class Board:
 
-    def __init__(self, random):
+    def __init__(self, random, fields=None):
         self.size = size = settings.BOARD_SIZE
         self.random = random
 
-        self.fields = [
-            [Field(x, y, self.random) for y in range(size)]
-            for x in range(size)
-        ]
+        if fields:
+            self.fields = fields
+        else:
+            self.fields = [
+                [Field(row, col, self.random) for col in range(size)]
+                for row in range(size)
+            ]
 
     @classmethod
     def from_seed(cls, seed):
         return cls(DenseStateRandom(seed))
 
     @classmethod
-    def from_random_state(cls, random_state):
+    def from_state(cls, state):
+        size = settings.BOARD_SIZE
         random = DenseStateRandom()
-        random.setstate(random_state)
-        return cls(random)
+        random.setstate(state['random'])
 
-    def get_field(self, x, y):
+        points_state = state['points'].split('\n')
+        directions_state = state['directions'].split('\n')
+        fields = [
+            [
+                Field(
+                    row,
+                    col,
+                    random,
+                    int(points_state[row][col]),
+                    directions_state[row][col],
+                )
+                for col in range(size)
+            ]
+            for row in range(size)
+        ]
+        return cls(random, fields)
+
+    def get_state(self):
+        preview = self.get_preview()
+        return {
+            'preview': '{}\n{}'.format(
+                ''.join(field.direction for field in preview),
+                ''.join(str(field.points) for field in preview),
+            ),
+            'points': '\n'.join(
+                ''.join([
+                    str(self.get_field(row, col).points)
+                    for col in range(self.size)
+                ])
+                for row in range(self.size)
+            ),
+            'directions': '\n'.join(
+                ''.join([
+                    self.get_field(row, col).direction
+                    for col in range(self.size)
+                ])
+                for row in range(self.size)
+            ),
+            'random': self.random.getstate(),
+        }
+
+    def get_field(self, row, col):
         """
         Returns the field at the given coordinates.
         """
-        return self.fields[x][y]
+        return self.fields[row][col]
 
     def get_next_field(self, field, direction=None):
         """
         Returns next field in chain reaction and information is it last step
         in this chain reaction.
         """
-        direction = field.direction or direction
+        direction = direction or field.direction
 
-        if direction == 'left':
-            if field.x == 0:
+        if direction == '<':
+            if field.col == 0:
                 return None
-            next_field = self.get_field(field.x - 1, field.y)
+            next_field = self.get_field(field.row, field.col - 1)
 
-        elif direction == 'right':
-            if field.x == (self.size - 1):
+        elif direction == '>':
+            if field.col == (self.size - 1):
                 return None
-            next_field = self.get_field(field.x + 1, field.y)
+            next_field = self.get_field(field.row, field.col + 1)
 
-        elif direction == 'up':
-            if field.y == 0:
+        elif direction == '^':
+            if field.row == 0:
                 return None
-            next_field = self.get_field(field.x, field.y - 1)
+            next_field = self.get_field(field.row - 1, field.col)
 
-        elif direction == 'down':
-            if field.y == (self.size - 1):
+        elif direction == 'v':
+            if field.row == (self.size - 1):
                 return None
-            next_field = self.get_field(field.x, field.y + 1)
+            next_field = self.get_field(field.row + 1, field.col)
 
-        if next_field.direction is None:
+        if next_field.direction == 'O':
             # if next was alread cleared than go further in the same direction
             return self.get_next_field(next_field, direction)
 
@@ -69,15 +113,15 @@ class Board:
         """
         When chain reaction is over fields that are 'flying' should be lowered.
         """
-        new_y = field.y
-        while new_y < self.size - 1:
-            if self.get_field(field.x, new_y + 1).direction is not None:
+        new_row = field.row
+        while new_row < self.size - 1:
+            if self.get_field(new_row + 1, field.col).direction != 'O':
                 # next field below is not empty, so finish lowering
                 break
-            new_y += 1
+            new_row += 1
 
-        if new_y != field.y:
-            next_field = self.get_field(field.x, new_y)
+        if new_row != field.row:
+            next_field = self.get_field(new_row, field.col)
             # swap fields values
             field.points, next_field.points = next_field.points, field.points
             field.direction, next_field.direction = \
@@ -87,18 +131,18 @@ class Board:
         """
         Lower fields (use gravity).
         """
-        for y in reversed(range(self.size - 1)):
-            for x in range(self.size):
-                self.lower_field(self.get_field(x, y))
+        for row in reversed(range(self.size - 1)):
+            for col in range(self.size):
+                self.lower_field(self.get_field(row, col))
 
     def fill_empty_fields(self):
         """
         Reset fields in empty places.
         """
-        for x in range(self.size):
-            for y in range(self.size):
-                field = self.get_field(x, y)
-                if field.direction is None:
+        for col in range(self.size):
+            for row in range(self.size):
+                field = self.get_field(row, col)
+                if field.direction == 'O':
                     field.reset()
 
     def get_extra_points(self):
@@ -107,45 +151,32 @@ class Board:
         """
         extra_points = 0
 
-        for x in range(self.size):
-            is_empty = True
-            for y in range(self.size):
-                if self.get_field(x, y).direction is not None:
-                    is_empty = False
-                    break
-
-            if is_empty:
+        for row in range(self.size):
+            # add extra points if all cols of a row are empty
+            if all(
+                    self.get_field(row, col).direction == 'O'
+                    for col in range(self.size)
+                ):
                 extra_points += self.size * 10
 
-        for y in range(self.size):
-            is_empty = True
-            for x in range(self.size):
-                if self.get_field(x, y).direction is not None:
-                    is_empty = False
-                    break
-
-            if is_empty:
+        for col in range(self.size):
+            # add extra points if all rows of a column are empty
+            if all(
+                    self.get_field(row, col).direction == 'O'
+                    for row in range(self.size)
+                ):
                 extra_points += self.size * 10
 
         return extra_points
 
     def get_preview(self):
+        """
+        Preview, a set of fields are next in the random generator.
+        """
         saved_state = self.random.getstate()
         result = [
-            Field(None, None, self.random).get_state()
+            Field(None, None, self.random)
             for i in range(settings.PREVIEW_SIZE)
         ]
         self.random.setstate(saved_state)
         return result
-
-    def get_state(self):
-        """
-        Get the status of the board.
-        """
-        rows = []
-        for y in range(self.size):
-            row = []
-            for x in range(self.size):
-                row.append(self.get_field(x, y).get_state())
-            rows.append(row)
-        return rows

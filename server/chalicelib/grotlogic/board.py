@@ -47,7 +47,6 @@ class Board:
         return cls(random, fields)
 
     def get_state(self):
-        preview = self.get_preview()
         return {
             'points': '\n'.join(
                 ''.join([
@@ -169,12 +168,12 @@ class Board:
         """
         Preview, a set of fields are next in the random generator.
         """
-        saved_state = self.random.getstate()
+        saved_state = random.Random.getstate(self.random)
         result = [
             Field(None, None, self.random)
             for i in range(settings.PREVIEW_SIZE)
         ]
-        self.random.setstate(saved_state)
+        random.Random.setstate(self.random, saved_state)
         return result
 
     def get_preview_state(self):

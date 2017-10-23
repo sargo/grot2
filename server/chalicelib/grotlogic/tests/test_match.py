@@ -203,3 +203,17 @@ class MatchTestCase(TestCase):
         )
         self.assertEqual(self.match.score, 64)
         self.assertEqual(self.match.moves, 6)
+
+    def test_get_state(self):
+        state = self.match.get_state()
+        self.assertEqual(
+            state['preview']['points'],
+            '1222121111111143113243112',
+        )
+        self.assertEqual(
+            state['preview']['directions'],
+            '<v^^^v>vvvv^v^vv<^>>v>^<^',
+        )
+        self.assertEqual(state['score'], 0)
+        self.assertEqual(state['moves'], 5)
+        self.assertEqual(state['bonus-multiplier'], 0.5)

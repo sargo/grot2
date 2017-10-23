@@ -184,10 +184,6 @@ class BoardTestCase(TestCase):
             state['directions'],
             '><>>v\n^^<^^\n>^>>^\n><^^<\nvv<^^',
         )
-        self.assertEqual(
-            state['preview'],
-            '<v^^^v>vvvv^v^vv<^>>v>^<^\n1222121111111143113243112',
-        )
         self.assertEqual(state['random'], '0-50')
 
     def test_preview_do_not_change_state(self):

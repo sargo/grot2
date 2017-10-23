@@ -269,10 +269,13 @@ class RenderManager extends engine.RenderManager
 
     movePreviewToEmptyFields: () ->
         # move preview field to empty places
+        @game.match.beforeSync()
+
+
         tweens = []
         previewIndex = 0
-        for col in [0..@board.size-1]
-            for row in [0..@board.size-1]
+        for row in [0..@board.size-1]
+            for col in [0..@board.size-1]
                 field = @board.fields[row][col]
                 if field.direction == 'O'
                     [centerX, centerY] = field.getFieldCenter()
@@ -415,7 +418,10 @@ class Game extends engine.Game
 
         qsMatchId = qs.get('match_id')
         qsApiKey = qs.get('api_key')
-        @match = new match.Match qsMatchId, qsApiKey, @
+        if qsApiKey
+            @match = new match.Match qsMatchId, qsApiKey, @
+        else
+            @match = new match.DemoMatch @
 
     init: () ->
         @score = @match.state.score

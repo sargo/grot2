@@ -11,7 +11,6 @@ class TopBarWidget extends engine.Widget
     score: null
     movesLabel: null
     moves: null
-    showPreview: false
 
     constructor: (config) ->
         super
@@ -147,24 +146,22 @@ class BottomBarWidget extends engine.Widget
     game: null
     help: null
     menu: null
-    showPreview: false
 
     constructor: (config) ->
         super
 
-        previewHeight = if @showPreview then cfg.previewHeight else 0
         @background = new Kinetic.Rect
             width: 600
             height: 120
             x: 0
-            y: 780+previewHeight
+            y: 780+cfg.previewHeight
             fill: cfg.bodyColor
         @add @background
 
         # group for help button
         @buttonHelpGroup = new Kinetic.Group
             x: 524
-            y: 820+previewHeight
+            y: 820+cfg.previewHeight
 
         @circleHelp = new Kinetic.Circle
             x: 20
@@ -196,7 +193,7 @@ class BottomBarWidget extends engine.Widget
         logoImgObj.onload = () =>
             @hero = new Kinetic.Image
                 x: 208
-                y: 811+previewHeight
+                y: 811+cfg.previewHeight
                 image: logoImgObj
                 width: 183
                 height: 71
@@ -209,7 +206,7 @@ class BottomBarWidget extends engine.Widget
         # group for menu button
         @buttonMenuGroup = new Kinetic.Group
             x: 36
-            y: 820+previewHeight
+            y: 820+cfg.previewHeight
 
         @circleMenu = new Kinetic.Circle
             x: 20

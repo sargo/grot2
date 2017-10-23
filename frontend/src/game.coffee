@@ -5,6 +5,7 @@ board = require './board.coffee'
 menu = require './menu.coffee'
 ctrl_bars = require './control-bars.coffee'
 utils = require './utils.coffee'
+match = require './match.coffee'
 
 
 class QueryString
@@ -32,7 +33,7 @@ class RenderManager extends engine.RenderManager
     topBarWidget: null
     menuOverlay: null
 
-    constructor: (@boardSize, @showPreview, @game) ->
+    constructor: (@boardSize, @game) ->
         [width, height] = @getWindowSize()
         @currentScale = @calculateScaleUnit()
 
@@ -67,20 +68,18 @@ class RenderManager extends engine.RenderManager
         @stage.fire 'ready'
 
     addLayers: ->
-        previewHeight = if @showPreview then cfg.previewHeight else 0
         @barsLayer = new engine.Layer
             width: 600
-            height: 900+previewHeight
+            height: 900+cfg.previewHeight
             margins: {x: 0, y: 0}
             renderManager: @
 
         @board = new board.Board
             size: @boardSize
-            showPreview: @showPreview
             renderManager: @
             margins: {x: 0, y: 180}
             width: 600
-            height: 600+previewHeight
+            height: 600+cfg.previewHeight
 
         @game.board = @board
 
@@ -89,35 +88,31 @@ class RenderManager extends engine.RenderManager
             hitGraphEnabled: false
             margins: {x: 0, y: 180}
             width: 600
-            height: 600+previewHeight
+            height: 600+cfg.previewHeight
             renderManager: @
 
         #create overlay for menu/gameover/help view
         @menuOverlay = new menu.MenuOverlay
             width: 600
-            height: 900+previewHeight
+            height: 900+cfg.previewHeight
             margins: {x: 0, y: 0}
             renderManager: @
-            showPreview: @showPreview
 
     addWidgets: ->
         @topBarWidget = new ctrl_bars.TopBarWidget
             game: @game
-            showPreview: @showPreview
         @bottomBarWidget = new ctrl_bars.BottomBarWidget
             game: @game
-            showPreview: @showPreview
 
         # add board fields to the layer
-        for x in [0..@board.size-1]
-            for y in [0..@board.size-1]
-                @board.add @board.fields[x][y].widget
+        for row in [0..@board.size-1]
+            for col in [0..@board.size-1]
+                @board.add @board.fields[row][col].widget
 
         # add preview fields to the layer
-        if @showPreview
-            for x in [0..@board.size*2-1]
-                @board.preview.fields[x].widget.setOpacity 1
-                @board.add @board.preview.fields[x].widget
+        for col in [0..@board.size*2-1]
+            @board.preview.fields[col].widget.setOpacity 1
+            @board.add @board.preview.fields[col].widget
 
         # add bar widgets to a barsLayer
 
@@ -151,32 +146,34 @@ class RenderManager extends engine.RenderManager
     onStageUpdated: () ->
         # Resize and set positions of widgets
 
-        for x in [0..@board.size-1]
-            for y in [0..@board.size-1]
-                field = @board.fields[x][y]
+        for row in [0..@board.size-1]
+            for col in [0..@board.size-1]
+                field = @board.fields[row][col]
                 [centerX, centerY] = field.getFieldCenter()
                 widget = field.widget
+                widget.rePosition()
                 widget.relativeMove centerX, centerY
                 if not widget.callback?
                     # set 'onClick' callback
                     widget.setupCallback(@startMove)
 
-        if @showPreview
-            for x in [0..@board.size*2-1]
-                field = @board.preview.fields[x]
-                [centerX, centerY] = field.getFieldCenter()
-                widget = field.widget
-                widget.relativeMove centerX, centerY
+        for col in [0..@board.size*2-1]
+            field = @board.preview.fields[col]
+            [centerX, centerY] = field.getFieldCenter()
+            widget = field.widget
+            widget.rePosition()
+            widget.relativeMove centerX, centerY
 
     listening: (state) ->
         # toggle listening for event on all field widgets
-        for x in [0..@board.size-1]
-            for y in [0..@board.size-1]
-                @board.fields[x][y].widget.listening(state)
+        for row in [0..@board.size-1]
+            for col in [0..@board.size-1]
+                @board.fields[row][col].widget.listening(state)
         @board.drawHit()
 
     startMove: (field, event) =>
         # deactivate listening until animation is finished
+        @game.match.postMove(field.row, field.col)
         @listening(false)
         @game.moves -= 1
         @game.scoreDiff = 0
@@ -192,7 +189,7 @@ class RenderManager extends engine.RenderManager
         # one step in chain reaction
         [nextField, lastMove] = @board.getNextField(startField)
         [centerX, centerY] = nextField.getFieldCenter()
-        startField.direction = 'none'
+        startField.direction = 'O'
         @movePoints += startField.getPoints()
         @moveLength += 1
 
@@ -218,22 +215,22 @@ class RenderManager extends engine.RenderManager
 
     checkEmptyLines: () ->
         # count empty rows and columns and give extra points
-        for x in [0..@board.size-1]
-            isEmptyColumn = true
-            for y in [0..@board.size-1]
-                if @board.fields[x][y].direction != 'none'
-                    isEmptyColumn = false
-
-            if isEmptyColumn
-                @movePoints += @board.size * 10
-
-        for y in [0..@board.size-1]
+        for row in [0..@board.size-1]
             isEmptyRow = true
-            for x in [0..@board.size-1]
-                if @board.fields[x][y].direction != 'none'
+            for col in [0..@board.size-1]
+                if @board.fields[row][col].direction != 'o'
                     isEmptyRow = false
 
             if isEmptyRow
+                @movePoints += @board.size * 10
+
+        for col in [0..@board.size-1]
+            isEmptyColumn = true
+            for row in [0..@board.size-1]
+                if @board.fields[row][col].direction != 'none'
+                    isEmptyColumn = false
+
+            if isEmptyColumn
                 @movePoints += @board.size * 10
 
         @lowerFields()
@@ -241,13 +238,12 @@ class RenderManager extends engine.RenderManager
     lowerFields: () ->
         # lower fields (gravity)
         tweens = []
-        for y in [@board.size-2..0]
-            for x in [0..@board.size-1]
-                field = @board.fields[x][y]
-                if field.direction != 'none'
+        for row in [@board.size-2..0]
+            for col in [0..@board.size-1]
+                field = @board.fields[row][col]
+                if field.direction != 'o'
                     result = @board.lowerField(field)
                     if result.length == 2
-                        [newX, newY] = result
                         [centerX, centerY] = field.getFieldCenter()
                         # move field to animLayer until animation is finished
                         @moveFieldToLayer(field, @animLayer)
@@ -263,59 +259,22 @@ class RenderManager extends engine.RenderManager
 
         if tweens.length > 0
             tweens[0].onFinish = () =>
-                if @showPreview
-                    @movePreviewToEmptyFields()
-                else
-                    @fillEmptyFields()
-                `this.destroy()`
-
-            for tween in tweens
-                tween.play()
-        else
-            if @showPreview
                 @movePreviewToEmptyFields()
-            else
-                @fillEmptyFields()
-
-    fillEmptyFields: () ->
-        # reset fields in empty places and show them
-        tweens = []
-        for x in [0..@board.size-1]
-            for y in [0..@board.size-1]
-                field = @board.fields[x][y]
-                if field.direction == 'none'
-                    field.reset()
-
-                    # move field to animLayer until animation is finished
-                    @moveFieldToLayer(field, @animLayer)
-
-                    tweens.push new Kinetic.Tween
-                        node: field.widget
-                        opacity: 1
-                        duration: cfg.tweenDuration
-                        onFinish: =>
-                            `this.destroy()`
-
-        @stage.fire 'onStageUpdated'
-
-        if tweens.length > 0
-            tweens[0].onFinish = () =>
-                @finishMove()
                 `this.destroy()`
 
             for tween in tweens
                 tween.play()
         else
-            @finishMove()
+            @movePreviewToEmptyFields()
 
     movePreviewToEmptyFields: () ->
         # move preview field to empty places
         tweens = []
         previewIndex = 0
-        for x in [0..@board.size-1]
-            for y in [0..@board.size-1]
-                field = @board.fields[x][y]
-                if field.direction == 'none'
+        for col in [0..@board.size-1]
+            for row in [0..@board.size-1]
+                field = @board.fields[row][col]
+                if field.direction == 'O'
                     [centerX, centerY] = field.getFieldCenter()
 
                     previewField = @board.preview.fields[previewIndex]
@@ -336,9 +295,9 @@ class RenderManager extends engine.RenderManager
 
         # shift rest of preview to the left
         if previewIndex < @board.size*2-1
-            for x in [previewIndex..@board.size*2-1]
-                previewField = @board.preview.fields[x]
-                destinationField = @board.preview.fields[x-previewIndex]
+            for col in [previewIndex..@board.size*2-1]
+                previewField = @board.preview.fields[col]
+                destinationField = @board.preview.fields[col-previewIndex]
                 [centerX, centerY] = destinationField.getFieldCenter()
 
                 @moveFieldToLayer(previewField, @animLayer)
@@ -365,18 +324,21 @@ class RenderManager extends engine.RenderManager
         # move values and direction from preview to field
         tweens = []
 
-        for x in [0..@board.size-1]
-            for y in [0..@board.size-1]
-                field = @board.fields[x][y]
-                if field.direction == 'none'
+        for col in [0..@board.size-1]
+            for row in [0..@board.size-1]
+                field = @board.fields[row][col]
+                if field.direction == 'O'
                     field.reset() # this will destroy preview widget
                     field.widget.setOpacity 1
+
+        # remove from preview fields moved to board and add new one
+        @board.preview.shiftAndRefill(@moveLength)
 
         @stage.fire 'onStageUpdated'
 
         # show new preview fields on the end of preview queue
-        for x in [0..@board.size*2-1]
-            previewField = @board.preview.fields[x]
+        for col in [0..@board.size*2-1]
+            previewField = @board.preview.fields[col]
             if previewField.widget.getOpacity() == 0
                 tweens.push new Kinetic.Tween
                     node: previewField.widget
@@ -428,7 +390,8 @@ class RenderManager extends engine.RenderManager
 
 
 class Game extends engine.Game
-    board: null
+    match: null
+    boardSize: null
     score: 0
     scoreDiff: 0
     moves: 5
@@ -443,17 +406,26 @@ class Game extends engine.Game
         qsPreview = qs.get('preview') is 'true'
         qsSpeed = parseInt(qs.get('speed'))
 
-        boardSize = if cfg.customBoardSize and qsSize
+        @boardSize = if cfg.customBoardSize and qsSize
         then qsSize else cfg.defaultBoardSize
-
-        showPreview = if cfg.customShowPreview and qsPreview
-        then qsPreview else cfg.showPreview
 
         speed = if cfg.customSpeed and qsSpeed and qsSpeed > 0 and qsSpeed < 10
         then qsSpeed else cfg.defaultSpeed
         cfg.tweenDuration = (10 - speed) * cfg.tweenDurationUnit
 
-        @renderManager = new RenderManager boardSize, showPreview, @
+        qsMatchId = qs.get('match_id')
+        qsApiKey = qs.get('api_key')
+        @match = new match.Match qsMatchId, qsApiKey, @
+
+    init: () ->
+        @score = @match.state.score
+        @moves = @match.state.moves
+        @renderManager = new RenderManager @boardSize, @
+        if @moves == 0
+            @renderManager.gameOver()
+
+    update: () ->
+        console.log(@renderManager)
 
 
 define [], () ->

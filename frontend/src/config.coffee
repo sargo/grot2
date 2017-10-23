@@ -16,11 +16,6 @@ define () ->
   customBoardSize: false
 
   ###
-  Display row with fields that will replace empty fields after move
-  ###
-  showPreview: true
-
-  ###
   Enables or disables possibility to pass
   ?preview=yes param to enable preview
   ###
@@ -101,3 +96,8 @@ define () ->
               https://github.com/sargo/grot2'
 
   aboutVer: ' v2.0'
+
+  ###
+  API params
+  ###
+  serverUrl: 'https://api.grot2-game.lichota.pl'

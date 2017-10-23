@@ -15,17 +15,17 @@ class FieldWidget extends engine.Widget
     relativeScale: null
 
     colors:
-        gray: cfg.circleColor1
-        blue: cfg.circleColor2
-        green: cfg.circleColor3
-        red: cfg.circleColor4
+        1: cfg.circleColor1
+        2: cfg.circleColor2
+        3: cfg.circleColor3
+        4: cfg.circleColor4
 
     arrows:
-        left: 270
-        right: 90
-        up: 0
-        down: 180
-        none: 0
+        '<': 270
+        '>': 90
+        '^': 0
+        'v': 180
+        'O': 0
 
     constructor: (config) ->
         super
@@ -87,14 +87,8 @@ class Field
     relativeScale: null
     preview: null
 
-    points:
-        gray: 1
-        blue: 2
-        green: 3
-        red: 4
-
-    constructor: (@board, @x, @y) ->
-        @id = "#{@x}-#{@y}"
+    constructor: (@board, @row, @col) ->
+        @id = "#{@row}-#{@col}"
         @renderManager = @board.renderManager
         @relativeScale = @board.fieldRelativeScale
         @preview = @board.preview
@@ -103,55 +97,45 @@ class Field
             field: @
 
     reset: () ->
-        [@value, @direction] = @preview.pop()
+        boardState = @board.renderManager.game.match.state.board
+        @value = parseInt(boardState.points.split('\n')[@row][@col], 10)
+        @direction = boardState.directions.split('\n')[@row][@col]
 
         if @widget?
             @widget.reset()
 
     getPoints: () ->
-        # get points of field
-        return @points[@value]
+        return @value
 
     getFieldCenter: ()->
         # calculate positions of a field widget
         relativeRadius = cfg.circleRadius * @relativeScale
         fieldSpacing = cfg.spaceBetweenFields * @relativeScale
 
-        centerX = fieldSpacing + relativeRadius + @x * (relativeRadius * 2 + fieldSpacing)
-        centerY = fieldSpacing + relativeRadius + @y * (relativeRadius * 2 + fieldSpacing)
+        centerX = fieldSpacing + relativeRadius + @col * (relativeRadius * 2 + fieldSpacing)
+        centerY = fieldSpacing + relativeRadius + @row * (relativeRadius * 2 + fieldSpacing)
 
-        if @board.showPreview
-            centerY += cfg.previewHeight * @relativeScale
+        centerY += cfg.previewHeight * @relativeScale
 
         return [centerX, centerY]
 
-    updatePosition: (@x, @y) ->
+    updatePosition: (@row, @col) ->
         # update field position
-        @id = "#{@x}-#{@y}"
+        @id = "#{@row}-#{@col}"
 
 
 class PreviewField extends Field
     # Field preview
 
-    constructor: (@board, @x) ->
-        @id = "preview-#{@x}"
+    constructor: (@board, @col) ->
+        @id = "preview-#{@col}"
         @renderManager = @board.renderManager
         @relativeScale = @board.fieldRelativeScale
-        @randomParams()
+        previewState = @board.renderManager.game.match.state.preview
+        @value = parseInt(previewState.points[@col], 10)
+        @direction = previewState.directions[@col]
         @widget = new FieldWidget
             field: @
-
-    randomParams: ->
-        # choose random value and random direction
-        # most common is gray field, most rare is red one.
-        points = [
-            'gray', 'gray', 'gray', 'gray',
-            'blue', 'blue', 'blue',
-            'green', 'green',
-            'red'
-        ]
-        @value = utils.randomChoice(points)
-        @direction = utils.randomChoice(['left', 'right', 'up', 'down'])
 
     getFieldCenter: () ->
         # calculate positions of a field widget
@@ -161,15 +145,15 @@ class PreviewField extends Field
         fieldSpacing = cfg.spaceBetweenFields * @relativeScale
         previewSpacing = cfg.spaceBetweenPreviewFields * @relativeScale
         return [
-            fieldSpacing + previewRadius + @x * (previewRadius * 2 + previewSpacing),
+            fieldSpacing + previewRadius + @col * (previewRadius * 2 + previewSpacing),
             fieldSpacing + previewRadius
         ]
 
-    updatePosition: (@x) ->
-        @id = "preview-#{@x}"
+    updatePosition: (@col) ->
+        @id = "preview-#{@col}"
 
-    shift: () ->
-        @updatePosition(@x-1)
+    shift: (n) ->
+        @updatePosition(@col-n)
 
 
 class Preview
@@ -178,31 +162,30 @@ class Preview
     fields: []
 
     constructor: (@board, @size) ->
-        @fields = (new PreviewField(@board, x) for x in [0..@size*2-1])
+        @fields = (new PreviewField(@board, col) for col in [0..@size*2-1])
 
-    pop: ->
-        field = @fields.shift()
-        result = [field.value, field.direction]
-        field.widget.destroy()
+    shiftAndRefill: (n) ->
+        usedFields = @fields.splice(0, n)
 
-        for i in @fields
-            i.shift()
+        for unusedField in @fields
+            unusedField.shift(n)
 
-        newField = new PreviewField @board, @size*2-1
-        newField.widget.setOpacity 0 # will be shown by addWidgets later
-        @fields.push newField
-        @board.add newField.widget
+        for usedField in usedFields
+            # it will be replaced by a new widget connected to a field
+            usedField.widget.destroy()
 
-        return result
+            newField = new PreviewField @board, @fields.length
+            newField.widget.setOpacity 0 # will be shown by addWidgets later
+            @fields.push newField
+            @board.add newField.widget
 
 
 class Board extends engine.Layer
     # Grid of fields.
 
-    size: 9
+    size: 5
     fields: []
     preview: null
-    showPreview: false
     fieldRelativeScale: 0
     renderManager: null
 
@@ -222,48 +205,47 @@ class Board extends engine.Layer
         @on 'arrowPress', @handleArrowPress
 
     handleArrowPress: (arrowPos) ->
-        x = arrowPos[0] - 1
-        y = arrowPos[1] - 1
+        row = arrowPos[0] - 1
+        col = arrowPos[1] - 1
 
-        if @fields[x] and @fields[x][y]
-            @fields[x][y].widget.fire 'forcePress'
+        if @fields[row] and @fields[row][col]
+            @fields[row][col].widget.fire 'forcePress'
 
     createBoard: () ->
         # create size x size board, calculate initial value of fields
-        for x in [0..@size-1]
+        for row in [0..@size-1]
             @fields.push (
-                new Field @, x, y for y in [0..@size-1]
+                new Field @, row, col for col in [0..@size-1]
             )
 
     createPreview: () ->
         @preview = new Preview @, @size
-        @preview.pop()
 
     getNextField: (field, lastDirection=null) ->
         # returns next field in chain reaction and information is it last step in this chain reaction
         direction = if lastDirection then lastDirection else field.direction
 
-        if direction == 'left'
-            if field.x == 0
+        if direction == '<'
+            if field.col == 0
                 return [field, true]
-            nextField = @fields[field.x - 1][field.y]
+            nextField = @fields[field.row][field.col - 1]
 
-        else if direction == 'right'
-            if field.x == (@size-1)
+        else if direction == '>'
+            if field.col == (@size-1)
                 return [field, true]
-            nextField = @fields[field.x + 1][field.y]
+            nextField = @fields[field.row][field.col + 1]
 
-        else if direction == 'up'
-            if field.y == 0
+        else if direction == '^'
+            if field.row == 0
                 return [field, true]
-            nextField = @fields[field.x][field.y - 1]
+            nextField = @fields[field.row - 1][field.col]
 
-        else if direction == 'down'
-            if field.y == (@size-1)
+        else if direction == 'v'
+            if field.row == (@size-1)
                 return [field, true]
-            nextField = @fields[field.x][field.y + 1]
+            nextField = @fields[field.row + 1][field.col]
 
-        if nextField.direction == 'none'
+        if nextField.direction == 'O'
             # if next was alread cleared than go further in the same direction
             return @getNextField(nextField, direction)
 
@@ -271,29 +253,29 @@ class Board extends engine.Layer
 
     lowerField: (field) ->
         # when chain reaction is over fields that are 'flying' should be lowered
-        oldX = field.x
-        oldY = field.y
-        [nextField, lastMove] = @getNextField(field, 'down')
-        newX = nextField.x
-        newY = nextField.y
+        oldRow = field.row
+        oldCol = field.col
+        [nextField, lastMove] = @getNextField(field, 'v')
+        newRow = nextField.row
+        newCol = nextField.col
 
         if not lastMove
             # if not last move, than we have to take one field above
-            newY = nextField.y - 1
+            newRow = nextField.row - 1
 
-        if newY == oldY
+        if newRow == oldRow
             # no move
             return []
 
         # move empty field in old place
-        @fields[oldX][oldY] = @fields[newX][newY]
-        @fields[oldX][oldY].updatePosition(oldX, oldY)
+        @fields[oldRow][oldCol] = @fields[newRow][newCol]
+        @fields[oldRow][oldCol].updatePosition(oldRow, oldCol)
 
         # move field to new place
-        @fields[newX][newY] = field
-        @fields[newX][newY].updatePosition(newX, newY)
+        @fields[newRow][newCol] = field
+        @fields[newRow][newCol].updatePosition(newRow, newCol)
 
-        return [newX, newY]
+        return [newRow, newCol]
 
 
 define [], () ->

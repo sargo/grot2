@@ -7,16 +7,14 @@ class MenuWidget extends engine.Widget
 
     group: null
     menuLayer: null
-    showPreview: false
     game: null
 
     constructor: (config) ->
         super
 
-        previewHeight = if @showPreview then cfg.previewHeight else 0
         @background = new Kinetic.Rect
             width: 600
-            height: 900+previewHeight
+            height: 900+cfg.previewHeight
             x: 0
             y: 0
             fill: cfg.overlayColor
@@ -24,7 +22,7 @@ class MenuWidget extends engine.Widget
 
         @container = new engine.Widget
             width: 600
-            height: 900+previewHeight
+            height: 900+cfg.previewHeight
             margins: {x: 0, y: 0}
             layer: @menuLayer
 
@@ -208,15 +206,13 @@ class GameOverWidget extends engine.Widget
 
     game: null
     menuLayer: null
-    showPreview: null
 
     constructor: (config) ->
         super
 
-        previewHeight = if @showPreview then cfg.previewHeight else 0
         @background = new Kinetic.Rect
             width: 600
-            height: 900+previewHeight
+            height: 900+cfg.previewHeight
             x: 0
             y: 0
             fill: cfg.overlayColor
@@ -224,7 +220,7 @@ class GameOverWidget extends engine.Widget
 
         @container = new engine.Widget
             width: 600
-            height: 900+previewHeight
+            height: 900+cfg.previewHeight
             margins: {x: 0, y: 0}
             layer: @menuLayer
 
@@ -353,15 +349,13 @@ class HelpWidget extends engine.Widget
 
     game: null
     menuLayer: null
-    showPreview: false
 
     constructor: (config) ->
         super
 
-        previewHeight = if @showPreview then cfg.previewHeight else 0
         @background = new Kinetic.Rect
             width: 600
-            height: 900+previewHeight
+            height: 900+cfg.previewHeight
             x: 0
             y: 0
             fill: cfg.overlayColor
@@ -369,7 +363,7 @@ class HelpWidget extends engine.Widget
 
         @container = new engine.Widget
             width: 600
-            height: 900+previewHeight
+            height: 900+cfg.previewHeight
             margins: {x: 0, y: 0}
             layer: @menuLayer
 
@@ -505,15 +499,13 @@ class AboutWidget extends engine.Widget
 
     game: null
     menuLayer: null
-    showPreview: false
 
     constructor: (config) ->
         super
 
-        previewHeight = if @showPreview then cfg.previewHeight else 0
         @background = new Kinetic.Rect
             width: 600
-            height: 900+previewHeight
+            height: 900+cfg.previewHeight
             x: 0
             y: 0
             fill: cfg.overlayColor
@@ -521,7 +513,7 @@ class AboutWidget extends engine.Widget
 
         @container = new engine.Widget
             width: 600
-            height: 900+previewHeight
+            height: 900+cfg.previewHeight
             margins: {x: 0, y: 0}
             layer: @menuLayer
 
@@ -595,7 +587,6 @@ class AboutWidget extends engine.Widget
 class MenuOverlay extends engine.Layer
     # Menu, GameOver, Help, About widgets
 
-    showPreview: false
     renderManager: null
 
     constructor: ->
@@ -603,19 +594,15 @@ class MenuOverlay extends engine.Layer
 
         @gameOverWidget = new GameOverWidget
             menuLayer: @
-            showPreview: @showPreview
 
         @menuWidget = new MenuWidget
             menuLayer: @
-            showPreview: @showPreview
 
         @helpWidget = new HelpWidget
             menuLayer: @
-            showPreview: @showPreview
 
         @aboutWidget = new AboutWidget
             menuLayer: @
-            showPreview: @showPreview
 
         @on 'showGameOver', @gameOverWidgetDraw
         @on 'showMenu', @menuWidgetDraw

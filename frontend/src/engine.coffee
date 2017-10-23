@@ -125,7 +125,6 @@ class RenderManager
     baseWindowSize: if cfg.baseWindowSize? then cfg.baseWindowSize else null
     currentScale: null
     stage: null
-    showPreview: false
 
     constructor: ->
         if not @baseWindowSize?
@@ -149,10 +148,9 @@ class RenderManager
 
     calculateScaleUnit: ->
         [maxWidth, maxHeight] = @getWindowSize()
-        previewHeight = if @showPreview then cfg.previewHeight else 0
 
         width = 600
-        height = 900 + previewHeight
+        height = 900 + cfg.previewHeight
 
         #check if current height is larger than max
         if (height > maxHeight)
@@ -167,7 +165,7 @@ class RenderManager
             height = height * ratio
 
         scaleXValue = width / 600
-        scaleYValue = height / (900 + previewHeight)
+        scaleYValue = height / (900 + cfg.previewHeight)
         scale = Math.min(scaleXValue, scaleYValue)
 
         return Number(scale.toFixed(2))
@@ -190,9 +188,8 @@ class RenderManager
         @stage.setHeight height
         @stage.setWidth width
 
-    update: ->
+    onResize: ->
         # called after windows resize
-
         @currentScale = @calculateScaleUnit()
         @adaptStage()
 
@@ -204,14 +201,15 @@ class RenderManager
 
         @updateMargin()
 
+
 class Game
     constructor: ->
-        window.onresize = @update.bind(@)
+        window.onresize = @onResize.bind(@)
         if !!window.ondeviceorientation
-            window.ondeviceorientation = @update.bind(@)
+            window.ondeviceorientation = @onResize.bind(@)
 
-    update: ->
-        @renderManager.update.call @renderManager
+    onResize: ->
+        @renderManager.onResize.call @renderManager
 
 
 define [], () ->

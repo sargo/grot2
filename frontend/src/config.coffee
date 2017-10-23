@@ -74,7 +74,7 @@ define () ->
   ###
   Urls settings
   ###
-  scoreBoardLink: 'http://grot2-game.lichota.pl/hall-of-fame/'
+  scoreBoardLink: 'http://grot2-game.lichota.pl/hall-of-fame.html'
 
   ###
   Help description

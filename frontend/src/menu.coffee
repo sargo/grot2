@@ -70,9 +70,9 @@ class MenuWidget extends engine.Widget
             height: 75
 
         @scoreBoardLinkText = new Kinetic.Text
-            x: 385
+            x: 380
             y: 400
-            text: 'High scores'
+            text: 'Hall of Fame'
             align: 'center'
             fontSize: 25
             fontFamily: cfg.fontFamily
@@ -270,7 +270,7 @@ class GameOverWidget extends engine.Widget
             height: 75
 
         @resetGameText = new Kinetic.Text
-            x: 180
+            x: 170
             y: 610
             text: 'New Game'
             align: 'center'
@@ -288,9 +288,9 @@ class GameOverWidget extends engine.Widget
             height: 75
 
         @scoreBoardLinkText = new Kinetic.Text
-            x: 455
+            x: 447
             y: 610
-            text: 'High scores'
+            text: 'Hall of Fame'
             align: 'center'
             fontSize: 25
             fontFamily: cfg.fontFamily

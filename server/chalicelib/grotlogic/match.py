@@ -27,6 +27,7 @@ class Match:
             'score': self.score,
             'moves': self.moves,
             'board': self.board.get_state(),
+            'preview': self.board.get_preview_state(),
             'bonus-multiplier': self.get_bonus_multiplier(),
             'user_id': self.user_id,
         }

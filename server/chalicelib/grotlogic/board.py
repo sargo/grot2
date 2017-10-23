@@ -49,10 +49,6 @@ class Board:
     def get_state(self):
         preview = self.get_preview()
         return {
-            'preview': '{}\n{}'.format(
-                ''.join(field.direction for field in preview),
-                ''.join(str(field.points) for field in preview),
-            ),
             'points': '\n'.join(
                 ''.join([
                     str(self.get_field(row, col).points)
@@ -180,3 +176,13 @@ class Board:
         ]
         self.random.setstate(saved_state)
         return result
+
+    def get_preview_state(self):
+        """
+        Preview as a strings.
+        """
+        preview = self.get_preview()
+        return {
+            'directions': ''.join(field.direction for field in preview),
+            'points': ''.join(str(field.points) for field in preview),
+        }

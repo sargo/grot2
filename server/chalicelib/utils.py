@@ -38,3 +38,13 @@ def timeit(func):
             func.__name__, (te - ts) * 1000))
         return result
     return timed
+
+
+def print_match_state(data):
+    print('score: ', str(data['score']), '    moves: ', str(data['moves']))
+    print(data['preview']['directions'], data['preview']['points'])
+    rows_points = data['board']['points'].split('\n')
+    rows_directions = data['board']['directions'].split('\n')
+    for pair in zip(rows_directions, rows_points):
+        print(*pair)
+    print('')

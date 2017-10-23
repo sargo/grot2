@@ -8,6 +8,7 @@ from chalicelib import gh_oauth
 from chalicelib import s3
 from chalicelib import sdb
 from chalicelib import settings
+from chalicelib import utils
 
 
 app = Chalice(app_name=settings.APP_NAME)
@@ -66,6 +67,9 @@ def match_get(match_id):
     if not match:
         raise BadRequestError('invalid match_id')
 
+    if app.debug:
+        utils.print_match_state(match.get_state())
+
     return match.get_state()
 
 
@@ -96,6 +100,10 @@ def match_post(match_id):
     if not match.is_active():
         sdb.increment_total_score(match.user_id, match.score)
         s3.update_hof(sdb.get_hof_data())
+
+    if app.debug:
+        print(data)
+        utils.print_match_state(match.get_state())
 
     return match.get_state()
 

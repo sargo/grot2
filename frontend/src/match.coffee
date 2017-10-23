@@ -90,6 +90,8 @@ class DemoMatch
     beforeSync: () ->
         @state.score = @game.score
         @state.moves = @game.moves
+        @state['bonus-multiplier'] = 100 / (@game.score + 200)
+
         pp = @state.preview.points
         pd = @state.preview.directions
 

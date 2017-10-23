@@ -218,7 +218,7 @@ class RenderManager extends engine.RenderManager
         for row in [0..@board.size-1]
             isEmptyRow = true
             for col in [0..@board.size-1]
-                if @board.fields[row][col].direction != 'o'
+                if @board.fields[row][col].direction != 'O'
                     isEmptyRow = false
 
             if isEmptyRow
@@ -227,7 +227,7 @@ class RenderManager extends engine.RenderManager
         for col in [0..@board.size-1]
             isEmptyColumn = true
             for row in [0..@board.size-1]
-                if @board.fields[row][col].direction != 'none'
+                if @board.fields[row][col].direction != 'O'
                     isEmptyColumn = false
 
             if isEmptyColumn
@@ -270,7 +270,6 @@ class RenderManager extends engine.RenderManager
     movePreviewToEmptyFields: () ->
         # move preview field to empty places
         @game.match.beforeSync()
-
 
         tweens = []
         previewIndex = 0
@@ -373,7 +372,7 @@ class RenderManager extends engine.RenderManager
 
         # multiplier depends on current score, more points you have then
         # multiplier is smaller so longer path you have to create to get moves bonus
-        multiplier = 100 / (@game.score + 200)
+        multiplier = @game.match.state['bonus-multiplier']
         @game.movesDiff = Math.floor(@moveLength * multiplier)
         @game.moves += @game.movesDiff
         @topBarWidget.update()

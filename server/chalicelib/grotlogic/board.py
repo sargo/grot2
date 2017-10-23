@@ -134,8 +134,8 @@ class Board:
         """
         Reset fields in empty places.
         """
-        for col in range(self.size):
-            for row in range(self.size):
+        for row in range(self.size):
+            for col in range(self.size):
                 field = self.get_field(row, col)
                 if field.direction == 'O':
                     field.reset()

@@ -11,6 +11,13 @@ def get_move(data):
     """
     Get coordinates (start point) of next move.
     """
+    print(data['preview']['directions'], data['preview']['points'])
+    rows_points = data['board']['points'].split('\n')
+    rows_directions = data['board']['directions'].split('\n')
+    for pair in zip(rows_directions, rows_points):
+        print(*pair)
+    print('')
+
     return {
         'row': random.randint(0, 4),
         'col': random.randint(0, 4),

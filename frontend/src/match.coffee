@@ -85,7 +85,7 @@ class DemoMatch
 
         setTimeout ( ->
             @game.init()
-        ), 1000
+        ), 20000
 
     beforeSync: () ->
         @state.score = @game.score

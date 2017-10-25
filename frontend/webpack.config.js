@@ -1,7 +1,10 @@
 module.exports = {
-	entry: './src/index.coffee',
+	entry: {
+	  game: './src/index.coffee',
+	  login: './src/login.coffee',
+	},
   output: {
-    filename: 'static/js/grot2.js'
+    filename: 'static/js/[name].js'
   },
   module: {
     rules: [

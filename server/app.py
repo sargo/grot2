@@ -25,7 +25,7 @@ def index():
     return 'GROT2 server'
 
 
-@app.route('/gh-oauth')
+@app.route('/gh-oauth', cors=cors_config)
 def gh_oauth_endpoint():
     gh_code = app.current_request.query_params.get('code', None)
     if not gh_code:
@@ -47,7 +47,7 @@ def gh_oauth_endpoint():
     if not api_key:
         api_key = apigateway.new_api_key(user_id, email)
         sdb.new_user(user_id, email, api_key)
-    return {'x-api-key': api_key}
+    return {'x-api-key': api_key, 'user_id': user_id}
 
 
 @app.route('/match', methods=['PUT'], api_key_required=True, cors=cors_config)

@@ -13,52 +13,37 @@
     <meta name="description" content="GROT2 is a logic game which you can play online and by writting a bot using API.">
 
     <link rel="stylesheet" href="/css/normalize.css">
-    <script type="text/javascript" src="/js/kinetic.min.js"></script>
+    <script type="text/javascript" src="/js/login.js"></script>
     <style>
-        /* latin-ext */
-        @font-face {
-            font-family: 'Lato';
-            font-style: normal;
-            font-weight: 400;
-            src: local('Lato Regular'), local('Lato-Regular'), url(/fonts/LatoRegular-latin-ext.woff) format('woff');
-        }
         body {
             overflow: hidden;
         }
-
         #wrap {
             text-align: center;
             overflow: hidden;
         }
-
         #wrap img {
             margin-top: 200px;
-        }
-
-        canvas {
-            margin: auto;
         }
     </style>
 </head>
 
 <body>
     <div id="wrap">
-        <div id="demo-mode" style="display: none">
-            <h1>Demo mode</h1>
+        <div id="logged-in" style="display: none">
+            <h1>Logged in</h1>
             <p>
-                You're in the demo mode, it means your match result will not be
-                recorded and will not affect <i>Hall of Fame</i> ranking.
+                You're logged in as <i id="user_id"></i>. Your
+                API key is <b id="api_key"></b>.
             </p>
             <p>
-                If you would like to compete with other players, please sign in using
-                <a href="https://github.com/login/oauth/authorize?client_id=4ba20fc056b74df39cc0&scope=user:email">
-                    GitHub OAuth
-                </a>.
+                Now you can <a href="game.html">play online</a> or start
+                development of your bot based on
+                <a href="https://github.com/sargo/grot2/tree/master/client">game client</a>.
             </p>
         </div>
-        <img src="/images/loading.gif"/>
+        <img id="spinner" src="/images/loading.gif"/>
     </div>
-    <script type="text/javascript" src="/js/game.js"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-36572748-5"></script>
     <script>
         window.dataLayer = window.dataLayer || [];

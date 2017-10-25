@@ -100,4 +100,5 @@ ENV/
 # mypy
 .mypy_cache/
 
-grot2.js
+game.js
+login.js

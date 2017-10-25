@@ -4,7 +4,7 @@
   "description": "GROT2 game frontend",
   "main": "src/index.coffee",
   "scripts": {
-    "build": "node_modules/webpack/bin/webpack.js",
+    "build": "node_modules/webpack/bin/webpack.js --optimize-minimize",
     "watch": "node_modules/webpack/bin/webpack.js --watch",
     "deploy": "aws s3 cp static s3://grot2-game.lichota.pl/ --recursive --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers"
   },

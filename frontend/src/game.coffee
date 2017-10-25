@@ -8,20 +8,6 @@ utils = require './utils.coffee'
 match = require './match.coffee'
 
 
-class QueryString
-    # Provide easy access to QueryString data
-    # https://gist.github.com/greystate/1274961
-
-    constructor: (@queryString) ->
-        @queryString or= window.document.location.search?.substr 1
-        @variables = @queryString.split '&'
-        @pairs = ([key, value] = pair.split '=' for pair in @variables)
-
-    get: (name) ->
-        for [key, value] in @pairs
-            return value if key is name
-
-
 class RenderManager extends engine.RenderManager
     # Manage canvas and widgets
 
@@ -403,7 +389,7 @@ class Game extends engine.Game
     constructor: () ->
         super
 
-        qs = new QueryString
+        qs = new utils.QueryString
         qsSize = parseInt(qs.get('size'))
         qsPreview = qs.get('preview') is 'true'
         qsSpeed = parseInt(qs.get('speed'))
@@ -415,12 +401,14 @@ class Game extends engine.Game
         then qsSpeed else cfg.defaultSpeed
         cfg.tweenDuration = (10 - speed) * cfg.tweenDurationUnit
 
-        qsMatchId = qs.get('match_id')
-        qsApiKey = qs.get('api_key')
-        if qsApiKey
-            @match = new match.Match qsMatchId, qsApiKey, @
-        else
+        qsDemo = qs.get('demo') is 'true'
+        apiKey = localStorage.getItem('api_key')
+        if qsDemo or not apiKey
+            document.getElementById('demo-mode').style.display = 'block'
             @match = new match.DemoMatch @
+        else
+            qsMatchId = qs.get('match_id')
+            @match = new match.Match qsMatchId, apiKey, @
 
     init: () ->
         @score = @match.state.score

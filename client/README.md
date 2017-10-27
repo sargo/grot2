@@ -1,6 +1,6 @@
 # GROT² game client
 
-A client that simplifys development of a bot for GROT² game.
+A client that simplifies development of a bot for GROT² game.
 
 # Installation
 
@@ -12,12 +12,12 @@ cd grot2-client
 ```
 
 # Sign-Up
-To play GROT² you have to sign-up with GitHub OAuth by opening:
+To play GROT² you have to sign in using GitHub OAuth by opening:
 
 https://github.com/login/oauth/authorize?client_id=4ba20fc056b74df39cc0&scope=user:email
 
-After authorization you will be redrected to a game server which will
-generate a new API key. This API key have to be registered in the client:
+After authorization you will see your unique API key. This API key have to be
+registered in the client:
 
 ``` bash
 python3 client.py register your-unique-api-key

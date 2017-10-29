@@ -64,8 +64,8 @@ elif subcmd == 'register':
     token = None
     if len(args.token) == 40:
         token = args.token
-    elif len(args.token) == 57 and args.token.startswith('{"x-api-key": '):
-        token = args.token[15:-2]
+    elif len(args.token) == 41 and args.token[-1] == '.':
+        token = args.token[:-1]
 
     if token:
         with open(TOKEN_FILE, 'w') as f:

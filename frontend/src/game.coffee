@@ -5,7 +5,6 @@ board = require './board.coffee'
 menu = require './menu.coffee'
 ctrl_bars = require './control-bars.coffee'
 utils = require './utils.coffee'
-match = require './match.coffee'
 
 
 class RenderManager extends engine.RenderManager
@@ -401,14 +400,9 @@ class Game extends engine.Game
         then qsSpeed else cfg.defaultSpeed
         cfg.tweenDuration = (10 - speed) * cfg.tweenDurationUnit
 
-        qsDemo = qs.get('demo') is 'true'
         apiKey = localStorage.getItem('api_key')
-        if qsDemo or not apiKey
-            document.getElementById('demo-mode').style.display = 'block'
-            @match = new match.DemoMatch @
-        else
-            qsMatchId = qs.get('match_id')
-            @match = new match.Match qsMatchId, apiKey, @
+        qsMatchId = qs.get('match_id')
+        @match = new window.Match qsMatchId, apiKey, @
 
     init: () ->
         @score = @match.state.score

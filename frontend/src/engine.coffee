@@ -177,8 +177,9 @@ class RenderManager
             maxWidth = Math.max(maxWidth, layer.canvas.width / layer.canvas.getPixelRatio())
 
         marginWidth = Math.ceil((@getWindowSize()[0] - maxWidth)/2)
-        marginWidth = Math.max(marginWidth, 0)
+        marginWidth = Math.max(marginWidth - 10, 0)
         @stage.getContainer().style.marginLeft = marginWidth + 'px'
+        @stage.getContainer().style.marginRight = marginWidth + 'px'
 
     centerLayer: (layer) ->
         layer.offsetX(-(@stage.getWidth() - layer.getWidth()) / 2)

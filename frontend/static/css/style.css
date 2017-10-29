@@ -15,46 +15,37 @@ html {
 
 body {
     margin: 0px;
-    color: #e0e0e0;
-    background: url(../images/bg.png);
-    background-color: #00635f;
-    background-size: 100% 100%;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
+    color: #134f5c;
+    background-color: #ffffff;
+    text-align: center;
 }
 
 h1 {
     font-weight: 300;
     font-size: 100px;
-    color: white;
     line-height: 90px;
     margin: 0px;
 }
 
 h2 {
     font-size: 40px;
-    color: white;
     line-height: 30px;
     margin-bottom: 0px;
-    text-align: center;
 }
 
 h3 {
     font-size: 20px;
-    color: white;
     line-height: 15px;
     margin-bottom: 5px;
-    text-align: center;
 }
 
 p {
     width: 100%;
     font-size: 16px;
-    text-align: center;
 }
 
 a {
-    color: #e0e0e0;
+    color: #134f5c;
 }
 
 #main {
@@ -64,15 +55,22 @@ a {
 #header {
     position: fixed;
     width: 100%;
-    background: rgb(0, 150, 143);
+    background: #ffffff;
     padding-top: 20px;
     padding-bottom: 20px;
+    border-bottom: 2px solid #134f5c;
 }
 
 #header_box {
-    width: 300px;
+    width: 405px;
     text-align: right;
     margin: auto;
+}
+
+#header_box h1 {
+    background: url(../images/grot2-logo.png);
+    background-size: 80px 80px;
+    background-repeat: no-repeat;
 }
 
 #content {
@@ -81,6 +79,10 @@ a {
     margin-right: auto;
     padding-top: 130px;
     padding-bottom: 20px;
+}
+
+#spinner {
+    margin-top: 200px;
 }
 
 #hof table {

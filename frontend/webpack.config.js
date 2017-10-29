@@ -1,6 +1,8 @@
 module.exports = {
 	entry: {
 	  game: './src/index.coffee',
+	  match: './src/match.coffee',
+	  demo: './src/demo.coffee',
 	  login: './src/login.coffee',
 	},
   output: {

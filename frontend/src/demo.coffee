@@ -11,6 +11,7 @@ class DemoMatch
         @state =
             score: 0
             moves: 5
+            'bonus-multiplier': 0.5
             preview:
                 points: (
                     utils.randomChoice('1111222334') for row in [0..size*size-1]

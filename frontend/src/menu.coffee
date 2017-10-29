@@ -614,12 +614,14 @@ class MenuOverlay extends engine.Layer
     closeMenuOverlay: ->
         @renderManager.stage.fire 'normalizeBoardStuff'
         document.body.style.backgroundColor = cfg.bodyColor
+        document.getElementById('wrap').style.backgroundColor = cfg.bodyColor
         @removeChildren
         @draw()
 
     onOverlayOpen: ->
         @renderManager.stage.fire 'blurBoardStuff'
         document.body.style.backgroundColor = cfg.overlayBodyColor
+        document.getElementById('wrap').style.backgroundColor = cfg.overlayBodyColor
 
     updateHandler: ->
         super

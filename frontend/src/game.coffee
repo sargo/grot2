@@ -157,8 +157,12 @@ class RenderManager extends engine.RenderManager
         @board.drawHit()
 
     startMove: (field, event) =>
-        # deactivate listening until animation is finished
+        # we have to save multiplier before sending move to api server because
+        # it will be overwritten as soon as server will respond
+        @multiplier = @game.match.state['bonus-multiplier']
         @game.match.postMove(field.row, field.col)
+
+        # deactivate listening until animation is finished
         @listening(false)
         @game.moves -= 1
         @game.scoreDiff = 0
@@ -253,9 +257,9 @@ class RenderManager extends engine.RenderManager
             @movePreviewToEmptyFields()
 
     movePreviewToEmptyFields: () ->
-        # move preview field to empty places
         @game.match.beforeSync()
 
+        # move preview field to empty places
         tweens = []
         previewIndex = 0
         for row in [0..@board.size-1]
@@ -355,10 +359,7 @@ class RenderManager extends engine.RenderManager
         @game.score += @movePoints
         @game.scoreDiff = @movePoints
 
-        # multiplier depends on current score, more points you have then
-        # multiplier is smaller so longer path you have to create to get moves bonus
-        multiplier = @game.match.state['bonus-multiplier']
-        @game.movesDiff = Math.floor(@moveLength * multiplier)
+        @game.movesDiff = Math.floor(@moveLength * @multiplier)
         @game.moves += @game.movesDiff
         @topBarWidget.update()
 

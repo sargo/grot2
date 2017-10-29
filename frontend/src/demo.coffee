@@ -49,12 +49,12 @@ class DemoMatch
             for col in [0..@game.boardSize-1]
                 field = @game.board.fields[row][col]
                 if field.direction == 'O'
-                    setCharAt('points', row, col, parseInt(pp[0]))
+                    setCharAt('points', row, col, pp[0])
                     pp = pp.substr(1) + utils.randomChoice('1111222334')
                     setCharAt('directions', row, col, pd[0])
                     pd = pd.substr(1) + utils.randomChoice('<>^v')
                 else
-                    setCharAt('points', row, col, field.points)
+                    setCharAt('points', row, col, field.value)
                     setCharAt('directions', row, col, field.direction)
 
         @state.preview.points = pp

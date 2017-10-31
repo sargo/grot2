@@ -130,7 +130,7 @@ def new_user(user_id, email, api_key):
         Attributes=[
             {'Name': 'api_key', 'Value': api_key, 'Replace': True},
             {'Name': 'user_id', 'Value': user_id, 'Replace': True},
-            {'Name': 'email', 'Value': email, 'Replace': True},
+            {'Name': 'email', 'Value': email or '', 'Replace': True},
         ],
         Expected={'Name': 'api_key', 'Exists': False},
     )

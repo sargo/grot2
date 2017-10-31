@@ -42,7 +42,7 @@ def gh_oauth_endpoint():
         raise BadRequestError('invalid code')
 
     user_id = user_data['login']
-    email = user_data.get('email', '')
+    email = user_data.get('email', '') or ''
     api_key = apigateway.get_api_key(user_id)
     if not api_key:
         api_key = apigateway.new_api_key(user_id, email)
